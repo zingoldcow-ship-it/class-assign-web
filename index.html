@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>반배정 웹앱 v3.2.2 (브라우저 전용)</title>
+  <title>반배정 웹앱 v3.2.3 (브라우저 전용)</title>
   <style>
     :root{ --bg:#0b1020; --card:#121a33; --text:#e9ecf1; --muted:#a9b1c6; --accent:#7aa2ff; --danger:#ff6b6b; --ok:#3ddc97; }
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans KR,Arial,sans-serif;background:var(--bg);color:var(--text);}
@@ -50,10 +50,10 @@
 <body>
 <header>
   <div class="wrap">
-    <h1>📘 반배정 웹앱 v3.2.2 (브라우저에서만 실행 · 데이터 서버 전송 0)</h1>
+    <h1>📘 반배정 웹앱 v3.2.3 (브라우저에서만 실행 · 데이터 서버 전송 0)</h1>
     <div class="sub">
       🔐 엑셀은 서버로 전송되지 않고 내 브라우저에서만 처리됩니다. (공모전용 개인정보 보호 강조)<br/>
-      v3.2.2: <b>앱 내부 탭(설정/결과)</b> + <b>반배정</b> + <b>가중치</b> + <b>분리/배려 코드(강도)</b> + <b>엑셀 다운로드</b>
+      v3.2.3: <b>앱 내부 탭(설정/결과)</b> + <b>반배정</b> + <b>가중치</b> + <b>분리/배려 코드(강도)</b> + <b>엑셀 다운로드</b>
     </div>
     <div class="row" style="margin-top:10px">
       <span class="pill ok">서버 전송 없음</span>
@@ -239,8 +239,51 @@
   </div>
 </div>
 
+
+<script>
+(function(){
+  function setStatus(txt){ var el=document.getElementById('statusPill'); if(el) el.textContent=txt; }
+  function showErr(msg){
+    var e=document.getElementById('errors');
+    if(e){ e.textContent=msg; }
+    setStatus('오류');
+  }
+  window.addEventListener('error', function(ev){
+    showErr('스크립트 오류: ' + (ev && ev.message ? ev.message : ev));
+  });
+  window.addEventListener('unhandledrejection', function(ev){
+    showErr('비동기 오류: ' + (ev && ev.reason ? (ev.reason.message || ev.reason) : ev));
+  });
+  window.addEventListener('DOMContentLoaded', function(){
+    try{
+      var inp=document.getElementById('fileInput');
+      var fp=document.getElementById('filePill');
+      if(inp){
+        inp.addEventListener('change', function(){
+          if(fp) fp.textContent = inp.files && inp.files[0] ? inp.files[0].name : '엑셀 미선택';
+          setStatus('파일 선택됨');
+        });
+      }
+      // CDN 로드 체크(5초 후)
+      setTimeout(function(){
+        if(!window.XLSX){
+          showErr('엑셀 처리 라이브러리(XLSX)가 로드되지 않았습니다.\n학교/기관 네트워크에서 CDN이 차단된 경우가 많습니다.\n해결: 다른 네트워크(모바일 핫스팟 등)에서 접속하거나, "오프라인(라이브러리 포함)" 버전으로 교체하세요.');
+        }
+        if(!window.Chart){
+          // 그래프만 실패할 수도 있음
+          var e=document.getElementById('errors');
+          if(e && !e.textContent){
+            e.textContent = '그래프 라이브러리(Chart.js)가 로드되지 않았습니다.\n그래프 없이도 반배정은 가능하지만, 학교망에서 CDN 차단 시 발생할 수 있습니다.';
+          }
+        }
+      }, 5000);
+    }catch(_){}
+  });
+})();
+</script>
+
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="./app.js?v=322"></script>
+<script src="./app.js?v=323"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-console.log('class-assign webapp v3.2.2 loaded');
+console.log('class-assign webapp v3.2.3 loaded');
 
 window.addEventListener('error', (e)=>{
   try{
