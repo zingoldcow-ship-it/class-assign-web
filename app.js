@@ -1,3 +1,54 @@
+
+const REQUIRED_COLUMNS = ['학생명','성별','학업성취','교우관계','학부모민원','특수여부','ADHD여부','분리요청코드','배려요청코드','비고'];
+
+// ===== v3.2: Header normalization (공백/유사명 자동 인식) =====
+function normHeader(h){
+  return String(h ?? "")
+    .replace(/\u00A0/g, " ")         // NBSP
+    .replace(/[ \t\r\n]+/g, "")      // 모든 공백 제거
+    .trim();
+}
+
+// 입력 헤더(정규화) -> 표준 헤더로 매핑
+const HEADER_ALIASES = {
+  "학생명": ["학생명","이름","성명","학생이름","학생명칭"],
+  "성별": ["성별","성","남녀","성구분","성별(남/여)"],
+  "학업성취": ["학업성취","학업성취도","성취","학업","성취도","학업수준","학업성취(3단계)"],
+  "교우관계": ["교우관계","교우","대인관계","친구관계","교우관계(3단계)"],
+  "학부모민원": ["학부모민원","민원","학부모","학부모요청","학부모민원(3단계)"],
+  "특수여부": ["특수여부","특수","특수학급","특수대상","특수교육대상","특수유무"],
+  "ADHD여부": ["ADHD여부","ADHD","adhd여부","주의력결핍","주의력","ADHD유무"],
+  "분리요청코드": ["분리요청코드","분리코드","분리요청","분리","분리요청 코드"],
+  "배려요청코드": ["배려요청코드","배려코드","배려요청","배려","배려요청 코드"],
+  "비고": ["비고","특이사항","메모","참고","기타","비고(특이사항)"]
+};
+
+// 정규화된 입력 헤더 -> 표준 헤더 반환(없으면 null)
+function mapToStandardHeader(inputHeader){
+  const nh = normHeader(inputHeader);
+  if (!nh) return null;
+  for (const [std, aliases] of Object.entries(HEADER_ALIASES)){
+    for (const a of aliases){
+      if (nh === normHeader(a)) return std;
+    }
+  }
+  // 이미 표준과 동일한 경우
+  for (const std of Object.keys(HEADER_ALIASES)){
+    if (nh === normHeader(std)) return std;
+  }
+  return null;
+}
+
+// 입력 헤더 리스트를 받아서: {stdHeader: originalHeader} 형태로 돌려줌
+function buildHeaderMap(headers){
+  const map = {};
+  headers.forEach(h=>{
+    const std = mapToStandardHeader(h);
+    if (std && !map[std]) map[std] = h; // 첫 매칭 우선
+  });
+  return map;
+}
+
 // 반배정 웹앱 v3 (브라우저 전용)
 // - 엑셀 로컬 파싱
 // - 가중치/분리/배려 강도 반영 시뮬레이션
@@ -401,7 +452,7 @@ fileInput.addEventListener("change", async (e)=>{
     renderTable(rawRows, 20);
     summarize(studentRows);
     statusPill.textContent = "엑셀 로드됨";
-    runBtn.disabled = false;
+    runBtn.disabled = !(studentRows && studentRows.length>0);
   } catch(err){
     console.error(err);
     setErrors("엑셀을 읽는 중 오류: " + (err?.message || String(err)));
