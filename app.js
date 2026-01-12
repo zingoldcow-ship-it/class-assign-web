@@ -1,3 +1,4 @@
+console.log('class-assign webapp v3.2.1 loaded');
 
 const REQUIRED_COLUMNS = ['학생명','성별','학업성취','교우관계','학부모민원','특수여부','ADHD여부','분리요청코드','배려요청코드','비고'];
 
