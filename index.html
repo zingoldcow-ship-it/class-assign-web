@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>반배정 웹앱 (브라우저에서만 실행)</title>
+  <style>
+    :root { --bg:#0b1020; --card:#121a33; --text:#e9ecf1; --muted:#a9b1c6; --accent:#7aa2ff; --danger:#ff6b6b; }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans KR, Arial, sans-serif; background: var(--bg); color: var(--text); }
+    header { padding: 20px 18px; border-bottom: 1px solid rgba(255,255,255,.08); }
+    h1 { margin:0; font-size: 18px; }
+    .sub { margin-top:6px; color: var(--muted); font-size: 13px; line-height: 1.4; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 18px; }
+    .grid { display:grid; grid-template-columns: 1.2fr .8fr; gap: 14px; }
+    @media (max-width: 900px){ .grid { grid-template-columns: 1fr; } }
+    .card { background: var(--card); border:1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 14px; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+    .row { display:flex; gap:10px; align-items:center; flex-wrap: wrap; }
+    .pill { font-size: 12px; border:1px solid rgba(255,255,255,.14); padding: 6px 10px; border-radius: 999px; color: var(--muted); }
+    .pill.ok { border-color: rgba(122,162,255,.45); color: #d7e2ff; }
+    .pill.warn { border-color: rgba(255,107,107,.5); color: #ffd7d7; }
+    label { font-size: 13px; color: var(--muted); }
+    input[type=file] { width: 100%; padding: 10px; border-radius: 12px; border:1px dashed rgba(255,255,255,.18); background: rgba(255,255,255,.03); color: var(--text); }
+    button { background: var(--accent); border:none; color:#071022; padding: 10px 12px; border-radius: 12px; font-weight: 700; cursor:pointer; }
+    button:disabled { opacity: .4; cursor:not-allowed; }
+    table { width:100%; border-collapse: collapse; font-size: 12px; }
+    th, td { border-bottom: 1px solid rgba(255,255,255,.08); padding: 8px 6px; text-align:left; }
+    th { color: var(--muted); font-weight: 600; }
+    .small { font-size: 12px; color: var(--muted); }
+    .danger { color: var(--danger); }
+    canvas { width:100%; height: 220px; }
+    .footer { margin-top: 12px; color: var(--muted); font-size: 12px; }
+    code { background: rgba(255,255,255,.06); padding: 2px 6px; border-radius: 8px; }
+    a { color: #b9c9ff; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>📘 반배정 웹앱 (브라우저에서만 실행 · 데이터 서버 전송 0)</h1>
+      <div class="sub">
+        🔐 업로드한 엑셀은 <b>인터넷으로 전송되지 않고</b> 이 브라우저 안에서만 읽고 처리합니다.<br/>
+        1단계(MVP): 엑셀 읽기/미리보기/기본 통계/그래프. (다음 단계에서 반배정 알고리즘 + 결과 다운로드 추가)
+      </div>
+      <div class="row" style="margin-top:10px">
+        <span class="pill ok" id="privacyPill">서버 전송 없음</span>
+        <span class="pill" id="filePill">엑셀 미선택</span>
+        <span class="pill" id="rowsPill">0명</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="grid">
+      <section class="card">
+        <h2 style="margin:0 0 10px 0; font-size:15px;">1) 엑셀 선택</h2>
+        <div class="small">.xlsx 파일을 선택하세요 (첫 번째 시트 기준). 열 이름은 기존 템플릿(학생명/성별/학업성취/교우관계/학부모민원/특수여부/ADHD여부/비고 등)을 권장합니다.</div>
+        <div style="height:10px"></div>
+        <input id="fileInput" type="file" accept=".xlsx" />
+        <div class="footer">
+          * 이 페이지는 정적 웹페이지(HTML/JS)라서, GitHub Pages/Vercel 같은 곳에 올리면 URL로 바로 쓸 수 있어요.
+        </div>
+      </section>
+
+      <aside class="card">
+        <h2 style="margin:0 0 10px 0; font-size:15px;">2) 기본 통계</h2>
+        <div id="stats" class="small">엑셀을 선택하면 통계가 표시됩니다.</div>
+      </aside>
+    </div>
+
+    <div style="height:14px"></div>
+
+    <section class="card">
+      <h2 style="margin:0 0 10px 0; font-size:15px;">3) 미리보기(상위 20명)</h2>
+      <div id="errors" class="small danger"></div>
+      <div style="overflow:auto; max-height: 420px;">
+        <table id="previewTable"></table>
+      </div>
+    </section>
+
+    <div style="height:14px"></div>
+
+    <section class="card">
+      <h2 style="margin:0 0 10px 0; font-size:15px;">4) 그래프(한눈에 보기)</h2>
+      <div class="small">현재는 “전체 분포” 그래프만 표시합니다. (다음 단계: ‘반배정 후 반별 분포’ 그래프)</div>
+      <div style="height:10px"></div>
+      <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 14px;">
+        <div class="card" style="padding: 12px;">
+          <div class="small">성별 분포</div>
+          <canvas id="genderChart"></canvas>
+        </div>
+        <div class="card" style="padding: 12px;">
+          <div class="small">특수/ADHD</div>
+          <canvas id="needsChart"></canvas>
+        </div>
+      </div>
+      <div style="height:14px"></div>
+      <div class="grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 14px;">
+        <div class="card" style="padding: 12px;">
+          <div class="small">학업성취(좋/보/나)</div>
+          <canvas id="acadChart"></canvas>
+        </div>
+        <div class="card" style="padding: 12px;">
+          <div class="small">교우관계(좋/보/나)</div>
+          <canvas id="peerChart"></canvas>
+        </div>
+        <div class="card" style="padding: 12px;">
+          <div class="small">학부모민원(좋/보/나)</div>
+          <canvas id="parentChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- SheetJS (xlsx) - read Excel locally in browser -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
