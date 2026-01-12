@@ -28,10 +28,29 @@ function syncWeights(){
 syncWeights();
 
 // Charts (global refs)
+const chartsEnabledEl = document.getElementById("chartsEnabled");
+let chartsEnabled = chartsEnabledEl ? chartsEnabledEl.checked : true;
+if (chartsEnabledEl){ chartsEnabledEl.addEventListener("change", ()=>{ chartsEnabled = chartsEnabledEl.checked; if(!chartsEnabled){ destroyAllCharts(); } }); }
+
+// Chart.js: avoid responsive resize loops on some environments
+if (typeof Chart !== "undefined"){
+  Chart.defaults.animation = false;
+  Chart.defaults.responsive = false;
+}
+
 let genderChart = null, needsChart = null, acadChart = null, peerChart = null, parentChart = null;
 
 // Prevent rapid re-renders
 let isBusy = false;
+
+function destroyAllCharts(){
+  try{ if (genderChart){ genderChart.destroy(); genderChart=null; } }catch(e){}
+  try{ if (needsChart){ needsChart.destroy(); needsChart=null; } }catch(e){}
+  try{ if (acadChart){ acadChart.destroy(); acadChart=null; } }catch(e){}
+  try{ if (peerChart){ peerChart.destroy(); peerChart=null; } }catch(e){}
+  try{ if (parentChart){ parentChart.destroy(); parentChart=null; } }catch(e){}
+}
+
 
 function showOverlay(on){
   overlay.style.display = on ? "flex" : "none";
@@ -101,7 +120,7 @@ function drawDoughnut(canvasId, labels, data, existingRefSetter){
   const chart = new Chart(ctx, {
     type: "doughnut",
     data: { labels, datasets: [{ data }] },
-    options: { responsive: true, maintainAspectRatio: false, animation: false, resizeDelay: 150, plugins: { legend: { position: "bottom" } } }
+    options: { responsive: false, maintainAspectRatio: false, animation: false, resizeDelay: 150, plugins: { legend: { position: "bottom" } } }
   });
   existingRefSetter(chart);
 }
@@ -112,7 +131,7 @@ function drawBar(canvasId, labels, data, existingRefSetter){
   const chart = new Chart(ctx, {
     type: "bar",
     data: { labels, datasets: [{ data }] },
-    options: { responsive: true, maintainAspectRatio: false, animation: false, resizeDelay: 150, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    options: { responsive: false, maintainAspectRatio: false, animation: false, resizeDelay: 150, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
   });
   existingRefSetter(chart);
 }
@@ -150,6 +169,10 @@ function renderStats(rows){
   rowsPill.textContent = `${n}명`;
 
   // Charts
+  if (!chartsEnabled){
+    destroyAllCharts();
+    return;
+  }
   const genderMap = countBy(gender);
   const other = n - (genderMap.get("남")||0) - (genderMap.get("여")||0);
 
