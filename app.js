@@ -1,6 +1,7 @@
-// 반배정 웹앱 (브라우저 전용) v1
-// - 엑셀 파일은 서버로 전송하지 않고, FileReader로 브라우저 메모리에서만 읽습니다.
-// - 1단계: 미리보기/기본 통계/그래프
+// 반배정 웹앱 (브라우저 전용) v2
+// - 사이드바(설정) UI 추가
+// - 엑셀 읽기 중 로딩 오버레이 고정(화면 하얘짐/깜빡임 체감 완화)
+// - 그래프가 '아래로 계속 생기는' 느낌 방지: 기존 차트 destroy 후 재생성 + 업데이트 잠금
 
 const fileInput = document.getElementById("fileInput");
 const filePill = document.getElementById("filePill");
@@ -8,9 +9,33 @@ const rowsPill = document.getElementById("rowsPill");
 const errorsDiv = document.getElementById("errors");
 const statsDiv = document.getElementById("stats");
 const table = document.getElementById("previewTable");
+const overlay = document.getElementById("overlay");
 
-// Charts
-let genderChart, needsChart, acadChart, peerChart, parentChart;
+// Sidebar controls
+const wAcad = document.getElementById("wAcad");
+const wPeer = document.getElementById("wPeer");
+const wParent = document.getElementById("wParent");
+const wAcadV = document.getElementById("wAcadV");
+const wPeerV = document.getElementById("wPeerV");
+const wParentV = document.getElementById("wParentV");
+
+function syncWeights(){
+  wAcadV.textContent = wAcad.value;
+  wPeerV.textContent = wPeer.value;
+  wParentV.textContent = wParent.value;
+}
+[wAcad, wPeer, wParent].forEach(el => el.addEventListener("input", syncWeights));
+syncWeights();
+
+// Charts (global refs)
+let genderChart = null, needsChart = null, acadChart = null, peerChart = null, parentChart = null;
+
+// Prevent rapid re-renders
+let isBusy = false;
+
+function showOverlay(on){
+  overlay.style.display = on ? "flex" : "none";
+}
 
 function safeString(x){ return (x === null || x === undefined) ? "" : String(x).trim(); }
 function ynTo01(x){
@@ -18,7 +43,6 @@ function ynTo01(x){
   if (v === "Y" || v === "1" || v === "TRUE") return 1;
   return 0;
 }
-
 function countBy(arr){
   const m = new Map();
   for (const v of arr){
@@ -60,6 +84,39 @@ function setErrors(msg){
   errorsDiv.textContent = msg || "";
 }
 
+function dist3(arr){
+  let good=0, mid=0, bad=0, etc=0;
+  for (const v of arr){
+    if (v === "좋음") good++;
+    else if (v === "보통") mid++;
+    else if (v === "나쁨") bad++;
+    else if (v) etc++;
+  }
+  return [good, mid, bad, etc];
+}
+
+function drawDoughnut(canvasId, labels, data, existingRefSetter){
+  const ctx = document.getElementById(canvasId);
+  existingRefSetter("destroy");
+  const chart = new Chart(ctx, {
+    type: "doughnut",
+    data: { labels, datasets: [{ data }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } }
+  });
+  existingRefSetter(chart);
+}
+
+function drawBar(canvasId, labels, data, existingRefSetter){
+  const ctx = document.getElementById(canvasId);
+  existingRefSetter("destroy");
+  const chart = new Chart(ctx, {
+    type: "bar",
+    data: { labels, datasets: [{ data }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+  });
+  existingRefSetter(chart);
+}
+
 function renderStats(rows){
   const n = rows.length;
   const names = rows.map(r => safeString(r["학생명"] || r["이름"] || r["성명"]));
@@ -87,56 +144,39 @@ function renderStats(rows){
       <span class="pill">ADHD ${adhdN}</span>
     </div>
     <div style="height:10px"></div>
-    <div class="small">※ 다음 단계에서 “반배정 후 반별 분포/편차” 그래프를 추가합니다.</div>
+    <div class="small">※ v3에서 반배정 후 ‘반별 분포/편차’ 그래프를 표시합니다.</div>
   `;
 
-  // Pills
   rowsPill.textContent = `${n}명`;
 
   // Charts
   const genderMap = countBy(gender);
-  drawPie("genderChart", ["남","여","기타"], [genderMap.get("남")||0, genderMap.get("여")||0, n - (genderMap.get("남")||0) - (genderMap.get("여")||0)], (c)=>{ genderChart = c; }, ()=>genderChart);
+  const other = n - (genderMap.get("남")||0) - (genderMap.get("여")||0);
 
-  drawBar("needsChart", ["특수","ADHD"], [specN, adhdN], (c)=>{ needsChart = c; }, ()=>needsChart);
-
-  drawBar("acadChart", ["좋음","보통","나쁨","기타"], dist3(acad), (c)=>{ acadChart = c; }, ()=>acadChart);
-  drawBar("peerChart", ["좋음","보통","나쁨","기타"], dist3(peer), (c)=>{ peerChart = c; }, ()=>peerChart);
-  drawBar("parentChart", ["좋음","보통","나쁨","기타"], dist3(parent), (c)=>{ parentChart = c; }, ()=>parentChart);
-}
-
-function dist3(arr){
-  let good=0, mid=0, bad=0, etc=0;
-  for (const v of arr){
-    if (v === "좋음") good++;
-    else if (v === "보통") mid++;
-    else if (v === "나쁨") bad++;
-    else if (v) etc++;
-  }
-  return [good, mid, bad, etc];
-}
-
-function drawPie(canvasId, labels, data, setRef, getRef){
-  const ctx = document.getElementById(canvasId);
-  const existing = getRef();
-  if (existing) existing.destroy();
-  const chart = new Chart(ctx, {
-    type: "doughnut",
-    data: { labels, datasets: [{ data }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } }
+  drawDoughnut("genderChart", ["남","여","기타"], [genderMap.get("남")||0, genderMap.get("여")||0, other], (v)=>{
+    if (v === "destroy" && genderChart){ genderChart.destroy(); return; }
+    genderChart = v;
   });
-  setRef(chart);
-}
 
-function drawBar(canvasId, labels, data, setRef, getRef){
-  const ctx = document.getElementById(canvasId);
-  const existing = getRef();
-  if (existing) existing.destroy();
-  const chart = new Chart(ctx, {
-    type: "bar",
-    data: { labels, datasets: [{ data }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+  drawBar("needsChart", ["특수","ADHD"], [specN, adhdN], (v)=>{
+    if (v === "destroy" && needsChart){ needsChart.destroy(); return; }
+    needsChart = v;
   });
-  setRef(chart);
+
+  drawBar("acadChart", ["좋음","보통","나쁨","기타"], dist3(acad), (v)=>{
+    if (v === "destroy" && acadChart){ acadChart.destroy(); return; }
+    acadChart = v;
+  });
+
+  drawBar("peerChart", ["좋음","보통","나쁨","기타"], dist3(peer), (v)=>{
+    if (v === "destroy" && peerChart){ peerChart.destroy(); return; }
+    peerChart = v;
+  });
+
+  drawBar("parentChart", ["좋음","보통","나쁨","기타"], dist3(parent), (v)=>{
+    if (v === "destroy" && parentChart){ parentChart.destroy(); return; }
+    parentChart = v;
+  });
 }
 
 fileInput.addEventListener("change", async (e) => {
@@ -147,6 +187,13 @@ fileInput.addEventListener("change", async (e) => {
     return;
   }
   filePill.textContent = `선택됨: ${file.name}`;
+
+  if (isBusy) return;
+  isBusy = true;
+  showOverlay(true);
+
+  // Yield to allow overlay render (prevents flash)
+  await new Promise(r => setTimeout(r, 10));
 
   try{
     const data = await file.arrayBuffer(); // stays local
@@ -160,12 +207,14 @@ fileInput.addEventListener("change", async (e) => {
       return;
     }
 
-    // Render
     renderTable(json, 20);
     renderStats(json);
 
   } catch(err){
     console.error(err);
     setErrors("엑셀을 읽는 중 오류가 발생했습니다: " + (err?.message || String(err)));
+  } finally{
+    showOverlay(false);
+    isBusy = false;
   }
 });
