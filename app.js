@@ -101,7 +101,7 @@ function drawDoughnut(canvasId, labels, data, existingRefSetter){
   const chart = new Chart(ctx, {
     type: "doughnut",
     data: { labels, datasets: [{ data }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } }
+    options: { responsive: true, maintainAspectRatio: false, animation: false, resizeDelay: 150, plugins: { legend: { position: "bottom" } } }
   });
   existingRefSetter(chart);
 }
@@ -112,7 +112,7 @@ function drawBar(canvasId, labels, data, existingRefSetter){
   const chart = new Chart(ctx, {
     type: "bar",
     data: { labels, datasets: [{ data }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    options: { responsive: true, maintainAspectRatio: false, animation: false, resizeDelay: 150, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
   });
   existingRefSetter(chart);
 }

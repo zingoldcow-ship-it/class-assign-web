@@ -31,7 +31,7 @@
     th { color: var(--muted); font-weight: 600; position: sticky; top: 0; background: rgba(18,26,51,.96); }
     .small { font-size: 12px; color: var(--muted); }
     .danger { color: var(--danger); }
-    canvas { width:100%; height: 220px; }
+    canvas { width:100% !important; height:100% !important; display:block; }
     .footer { margin-top: 12px; color: var(--muted); font-size: 12px; }
     .panelTitle { font-size: 14px; margin:0 0 10px 0; }
     .divider { height: 1px; background: rgba(255,255,255,.08); margin: 12px 0; }
@@ -126,26 +126,26 @@
           <div class="row" style="gap:14px;">
             <div class="card" style="padding: 12px; flex:1; min-width: 280px;">
               <div class="small">성별 분포</div>
-              <canvas id="genderChart"></canvas>
+              <div style="height:260px; position:relative;"><canvas id="genderChart" height="260"></canvas></div>
             </div>
             <div class="card" style="padding: 12px; flex:1; min-width: 280px;">
               <div class="small">특수/ADHD</div>
-              <canvas id="needsChart"></canvas>
+              <div style="height:260px; position:relative;"><canvas id="needsChart" height="260"></canvas></div>
             </div>
           </div>
           <div style="height:14px"></div>
           <div class="row" style="gap:14px;">
             <div class="card" style="padding: 12px; flex:1; min-width: 260px;">
               <div class="small">학업성취(좋/보/나)</div>
-              <canvas id="acadChart"></canvas>
+              <div style="height:260px; position:relative;"><canvas id="acadChart" height="260"></canvas></div>
             </div>
             <div class="card" style="padding: 12px; flex:1; min-width: 260px;">
               <div class="small">교우관계(좋/보/나)</div>
-              <canvas id="peerChart"></canvas>
+              <div style="height:260px; position:relative;"><canvas id="peerChart" height="260"></canvas></div>
             </div>
             <div class="card" style="padding: 12px; flex:1; min-width: 260px;">
               <div class="small">학부모민원(좋/보/나)</div>
-              <canvas id="parentChart"></canvas>
+              <div style="height:260px; position:relative;"><canvas id="parentChart" height="260"></canvas></div>
             </div>
           </div>
         </section>
