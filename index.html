@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>반배정 웹앱 v3 (브라우저 전용)</title>
+  <title>반배정 웹앱 v3.1 (브라우저 전용)</title>
   <style>
     :root{ --bg:#0b1020; --card:#121a33; --text:#e9ecf1; --muted:#a9b1c6; --accent:#7aa2ff; --danger:#ff6b6b; --ok:#3ddc97; }
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans KR,Arial,sans-serif;background:var(--bg);color:var(--text);}
@@ -14,6 +14,10 @@
     .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .pill{font-size:12px;border:1px solid rgba(255,255,255,.14);padding:6px 10px;border-radius:999px;color:var(--muted);}
     .pill.ok{border-color:rgba(61,220,151,.55);color:#c9ffe9}
+    .pill.warn{border-color:rgba(255,107,107,.55);color:#ffd7d7}
+    .tabs{display:flex;gap:8px;margin-top:12px}
+    .tabBtn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--text);padding:8px 12px;border-radius:999px;cursor:pointer;font-weight:800}
+    .tabBtn.active{background:var(--accent);color:#071022;border-color:transparent}
     .app{display:grid;grid-template-columns:340px 1fr;gap:14px;align-items:start}
     @media (max-width: 980px){ .app{grid-template-columns:1fr;} }
     .card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px;box-shadow:0 8px 24px rgba(0,0,0,.25);}
@@ -36,116 +40,191 @@
     table{width:100%;border-collapse:collapse;font-size:12px}
     th,td{border-bottom:1px solid rgba(255,255,255,.08);padding:8px 6px;text-align:left;white-space:nowrap}
     th{color:var(--muted);font-weight:600;position:sticky;top:0;background:rgba(18,26,51,.96)}
+    .chartGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    @media (max-width: 980px){ .chartGrid{grid-template-columns:1fr;} }
+    .chartBox{height:260px;position:relative}
+    canvas{width:100% !important;height:100% !important;display:block}
     a{color:#b9c9ff}
   </style>
 </head>
 <body>
 <header>
   <div class="wrap">
-    <h1>📘 반배정 웹앱 v3 (브라우저에서만 실행 · 데이터 서버 전송 0)</h1>
+    <h1>📘 반배정 웹앱 v3.1 (브라우저에서만 실행 · 데이터 서버 전송 0)</h1>
     <div class="sub">
-      🔐 엑셀은 <b>업로드(서버전송)되지 않고</b> 내 브라우저에서만 처리됩니다.<br/>
-      v3: <b>반배정 실행</b> + <b>가중치</b> + <b>분리/배려 코드(강도)</b> + <b>결과 새 탭</b> + <b>결과 엑셀 다운로드</b>
+      🔐 엑셀은 서버로 전송되지 않고 내 브라우저에서만 처리됩니다. (공모전용 개인정보 보호 강조)<br/>
+      v3.1: <b>앱 내부 탭(설정/결과)</b> + <b>반배정</b> + <b>가중치</b> + <b>분리/배려 코드(강도)</b> + <b>엑셀 다운로드</b>
     </div>
     <div class="row" style="margin-top:10px">
       <span class="pill ok">서버 전송 없음</span>
       <span class="pill" id="filePill">엑셀 미선택</span>
       <span class="pill" id="rowsPill">0명</span>
+      <span class="pill" id="statusPill">대기</span>
+    </div>
+    <div class="tabs">
+      <button class="tabBtn active" id="tabSetup">설정</button>
+      <button class="tabBtn" id="tabResult" disabled>결과</button>
     </div>
   </div>
 </header>
 
 <main class="wrap">
-  <div class="app">
-    <aside class="card" style="position:sticky; top:86px;">
-      <h2 class="panelTitle">⚙️ 설정</h2>
-      <label>학생 데이터 엑셀(.xlsx)</label>
-      <input id="fileInput" type="file" accept=".xlsx" />
-      <div class="divider"></div>
+  <!-- SETUP TAB -->
+  <section id="setupTab">
+    <div class="app">
+      <aside class="card" style="position:sticky; top:120px;">
+        <h2 class="panelTitle">⚙️ 설정</h2>
+        <label>학생 데이터 엑셀(.xlsx)</label>
+        <input id="fileInput" type="file" accept=".xlsx" />
+        <div class="divider"></div>
 
-      <label>반 개수</label>
-      <input id="classCount" type="number" min="2" max="30" value="10" />
-      <div class="divider"></div>
+        <label>반 개수</label>
+        <input id="classCount" type="number" min="2" max="30" value="10" />
+        <div class="divider"></div>
 
-      <label>시뮬레이션 횟수(클수록 더 균형 / 느려질 수 있음)</label>
-      <input id="iterations" type="number" min="200" max="60000" step="200" value="8000" />
-      <div class="small">* 250명/10반 기준: 8,000~20,000 추천</div>
+        <label>시뮬레이션 횟수(클수록 더 균형 / 느려질 수 있음)</label>
+        <input id="iterations" type="number" min="200" max="60000" step="200" value="8000" />
+        <div class="small">* 250명/10반 기준: 8,000~20,000 추천</div>
 
-      <div class="divider"></div>
+        <div class="divider"></div>
 
-      <label>랜덤 시드(같은 값이면 같은 결과)</label>
-      <input id="seed" type="number" min="0" max="999999" value="42" />
+        <label>랜덤 시드(같은 값이면 같은 결과)</label>
+        <input id="seed" type="number" min="0" max="999999" value="42" />
 
-      <div class="divider"></div>
+        <div class="divider"></div>
 
-      <label>가중치(우선순위)</label>
-      <div style="margin-top:10px">
-        <label>학업성취 가중치</label>
-        <input id="wAcad" type="range" min="0" max="600" value="160" step="10" />
-        <div class="kv"><span>0</span><span id="wAcadV">160</span><span>600</span></div>
-      </div>
-      <div style="margin-top:10px">
-        <label>교우관계 가중치</label>
-        <input id="wPeer" type="range" min="0" max="600" value="160" step="10" />
-        <div class="kv"><span>0</span><span id="wPeerV">160</span><span>600</span></div>
-      </div>
-      <div style="margin-top:10px">
-        <label>학부모민원 가중치</label>
-        <input id="wParent" type="range" min="0" max="600" value="260" step="10" />
-        <div class="kv"><span>0</span><span id="wParentV">260</span><span>600</span></div>
-      </div>
+        <label>가중치(우선순위)</label>
+        <div style="margin-top:10px">
+          <label>학업성취 가중치</label>
+          <input id="wAcad" type="range" min="0" max="600" value="160" step="10" />
+          <div class="kv"><span>0</span><span id="wAcadV">160</span><span>600</span></div>
+        </div>
+        <div style="margin-top:10px">
+          <label>교우관계 가중치</label>
+          <input id="wPeer" type="range" min="0" max="600" value="160" step="10" />
+          <div class="kv"><span>0</span><span id="wPeerV">160</span><span>600</span></div>
+        </div>
+        <div style="margin-top:10px">
+          <label>학부모민원 가중치</label>
+          <input id="wParent" type="range" min="0" max="600" value="260" step="10" />
+          <div class="kv"><span>0</span><span id="wParentV">260</span><span>600</span></div>
+        </div>
 
-      <div class="divider"></div>
+        <div class="divider"></div>
 
-      <label>분리요청 강도(같은 반 “되면 안 됨”)</label>
-      <select id="sepStrength">
-        <option value="strict">엄격(가능하면 0위반, 불가능 시 최소화)</option>
-        <option value="strong" selected>강(큰 불이익)</option>
-        <option value="medium">보통</option>
-        <option value="weak">약</option>
-      </select>
-
-      <div style="margin-top:10px">
-        <label>배려요청 강도(같은 반 “되면 좋음”)</label>
-        <select id="careStrength">
-          <option value="strong" selected>강</option>
+        <label>분리요청 강도(같은 반 “되면 안 됨”)</label>
+        <select id="sepStrength">
+          <option value="strict">엄격(가능하면 0위반, 불가능 시 최소화)</option>
+          <option value="strong" selected>강(큰 불이익)</option>
           <option value="medium">보통</option>
           <option value="weak">약</option>
         </select>
-      </div>
 
-      <div class="divider"></div>
+        <div style="margin-top:10px">
+          <label>배려요청 강도(같은 반 “되면 좋음”)</label>
+          <select id="careStrength">
+            <option value="strong" selected>강</option>
+            <option value="medium">보통</option>
+            <option value="weak">약</option>
+          </select>
+        </div>
 
-      <button id="runBtn" disabled>반배정 실행 → 새 탭에서 결과 보기</button>
-      <div class="small" style="margin-top:10px">
-        TIP: 결과가 마음에 안 들면 <b>시드</b>를 바꾸거나 <b>시뮬레이션 횟수</b>를 늘려보세요.
-      </div>
-    </aside>
+        <div class="divider"></div>
 
-    <section style="display:flex; flex-direction:column; gap:14px;">
+        <button id="runBtn" disabled>반배정 실행 → 결과 탭 보기</button>
+        <div class="small" style="margin-top:10px">
+          TIP: 결과가 마음에 안 들면 <b>시드</b>를 바꾸거나 <b>시뮬레이션 횟수</b>를 늘려보세요.
+        </div>
+      </aside>
+
+      <section style="display:flex; flex-direction:column; gap:14px;">
+        <section class="card">
+          <h2 class="panelTitle">📊 기본 통계</h2>
+          <div id="stats" class="small">엑셀을 선택하면 통계/미리보기가 표시됩니다.</div>
+        </section>
+
+        <section class="card">
+          <h2 class="panelTitle">🔎 미리보기(상위 20명)</h2>
+          <div id="errors" class="small danger"></div>
+          <div style="overflow:auto; max-height: 420px;">
+            <table id="previewTable"></table>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2 class="panelTitle">🧭 안내</h2>
+          <div class="small">
+            • 결과는 <b>이 웹앱 내부의 “결과” 탭</b>에서 확인합니다.<br/>
+            • 엑셀 열 이름(권장): 학생명, 성별, 학업성취, 교우관계, 학부모민원, 특수여부, ADHD여부, 분리요청코드, 배려요청코드, 비고
+          </div>
+        </section>
+      </section>
+    </div>
+  </section>
+
+  <!-- RESULT TAB -->
+  <section id="resultTab" style="display:none;">
+    <div style="display:flex;flex-direction:column;gap:14px;">
       <section class="card">
-        <h2 class="panelTitle">📊 기본 통계</h2>
-        <div id="stats" class="small">엑셀을 선택하면 통계/미리보기가 표시됩니다.</div>
+        <h2 class="panelTitle">✅ 반배정 결과</h2>
+        <div class="row" style="justify-content:space-between;">
+          <div class="row">
+            <span class="pill ok" id="metaPill">-</span>
+            <span class="pill" id="scorePill">Score: -</span>
+            <span class="pill warn" id="sepPill">분리 위반: -</span>
+            <span class="pill" id="carePill">배려 미충족: -</span>
+          </div>
+          <div class="row">
+            <button id="downloadBtn" style="width:auto;">결과 엑셀 다운로드</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="chartGrid">
+        <section class="card">
+          <h2 class="panelTitle">📊 반별 요약</h2>
+          <div id="classSummary" class="small">-</div>
+        </section>
+        <section class="card">
+          <h2 class="panelTitle">⚠️ 분리/배려 리포트</h2>
+          <div class="small">
+            • <b>분리 위반</b>: 같은 분리코드가 같은 반에 2명 이상인 경우<br/>
+            • <b>배려 미충족</b>: 같은 배려코드 그룹이 여러 반으로 흩어진 정도
+          </div>
+          <div style="height:10px"></div>
+          <div id="violations" class="small">-</div>
+        </section>
       </section>
 
       <section class="card">
-        <h2 class="panelTitle">🔎 미리보기(상위 20명)</h2>
-        <div id="errors" class="small danger"></div>
-        <div style="overflow:auto; max-height: 420px;">
-          <table id="previewTable"></table>
+        <h2 class="panelTitle">📈 그래프(반별 분포)</h2>
+        <div class="small">* 안정성을 위해 차트는 반응형(responsive) OFF 상태로 렌더링합니다.</div>
+        <div style="height:12px"></div>
+        <div class="chartGrid">
+          <div class="card" style="padding:12px;">
+            <div class="small">반별 인원</div>
+            <div class="chartBox"><canvas id="cntChart" height="260"></canvas></div>
+          </div>
+          <div class="card" style="padding:12px;">
+            <div class="small">반별 남/여</div>
+            <div class="chartBox"><canvas id="genderChart" height="260"></canvas></div>
+          </div>
         </div>
       </section>
 
       <section class="card">
-        <h2 class="panelTitle">🧭 안내</h2>
-        <div class="small">
-          • 실행을 누르면 반배정을 계산한 뒤 <b>새 탭(result.html)</b>에서 결과를 보여줍니다.<br/>
-          • 결과는 <b>브라우저 임시저장소(sessionStorage)</b>에만 잠깐 저장되며, 서버로 전송되지 않습니다.<br/>
-          • 엑셀 열 이름(권장): 학생명, 성별, 학업성취, 교우관계, 학부모민원, 특수여부, ADHD여부, 분리요청코드, 배려요청코드, 비고
+        <h2 class="panelTitle">📋 배정표</h2>
+        <div class="row" style="margin-bottom:10px;">
+          <label class="small">반 필터</label>
+          <select id="classFilter"></select>
+          <span class="small" id="tableMeta"></span>
+        </div>
+        <div style="overflow:auto; max-height: 560px;">
+          <table id="resultTable"></table>
         </div>
       </section>
-    </section>
-  </div>
+    </div>
+  </section>
 </main>
 
 <div class="overlay" id="overlay">
@@ -161,6 +240,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="./app.js"></script>
 </body>
 </html>
