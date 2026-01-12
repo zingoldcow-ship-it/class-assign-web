@@ -1,4 +1,4 @@
-console.log('class-assign webapp v3.2.3 loaded');
+console.log('class-assign webapp v3.2.4 loaded');
 
 window.addEventListener('error', (e)=>{
   try{
@@ -97,7 +97,7 @@ const filePill = document.getElementById("filePill");
 const rowsPill = document.getElementById("rowsPill");
 const errorsDiv = document.getElementById("errors");
 const statsDiv = document.getElementById("stats");
-const table = document.getElementById("previewTable");
+const previewTableEl = document.getElementById("previewTable");
 
 const classCountEl = document.getElementById("classCount");
 const iterationsEl = document.getElementById("iterations");
@@ -167,8 +167,8 @@ function splitCodes(x){
   return s.split(/[,\s;]+/).map(t=>t.trim()).filter(Boolean);
 }
 
-function renderTable(rows, maxRows=20){
-  table.innerHTML = "";
+function renderPreviewTable(rows, maxRows=20){
+  previewTableEl.innerHTML = "";
   if (!rows || rows.length===0) return;
   const cols = Object.keys(rows[0]);
   const thead = document.createElement("thead");
@@ -179,7 +179,7 @@ function renderTable(rows, maxRows=20){
     trh.appendChild(th);
   }
   thead.appendChild(trh);
-  table.appendChild(thead);
+  previewTableEl.appendChild(thead);
 
   const tbody = document.createElement("tbody");
   for (const r of rows.slice(0,maxRows)){
@@ -191,7 +191,7 @@ function renderTable(rows, maxRows=20){
     }
     tbody.appendChild(tr);
   }
-  table.appendChild(tbody);
+  previewTableEl.appendChild(tbody);
 }
 
 function setErrors(msg){ errorsDiv.textContent = msg || ""; }
@@ -567,7 +567,7 @@ const sepPill = document.getElementById("sepPill");
 const carePill = document.getElementById("carePill");
 const classSummary = document.getElementById("classSummary");
 const violationsDiv = document.getElementById("violations");
-const table = document.getElementById("resultTable");
+const resultTableEl = document.getElementById("resultTable");
 const classFilter = document.getElementById("classFilter");
 const tableMeta = document.getElementById("tableMeta");
 const downloadBtn = document.getElementById("downloadBtn");
@@ -586,11 +586,11 @@ function renderClassSummary(){
   const spec = payload.arrays.spec;
   const adhd = payload.arrays.adhd;
 
-  let html = "<div style='overflow:auto'><table><thead><tr><th>반</th><th>인원</th><th>남</th><th>여</th><th>특수</th><th>ADHD</th></tr></thead><tbody>";
+  let html = "<div style='overflow:auto'><previewTableEl><thead><tr><th>반</th><th>인원</th><th>남</th><th>여</th><th>특수</th><th>ADHD</th></tr></thead><tbody>";
   for (let c=0;c<C;c++){
     html += `<tr><td>${c+1}</td><td>${cnt[c]}</td><td>${male[c]}</td><td>${female[c]}</td><td>${spec[c]}</td><td>${adhd[c]}</td></tr>`;
   }
-  html += "</tbody></table></div>";
+  html += "</tbody></previewTableEl></div>";
   classSummary.innerHTML = html;
 }
 
@@ -639,31 +639,31 @@ function buildViolationReport(){
   html += `<div class="small"><b>분리 위반(상위 10)</b></div>`;
   if (worstSep.length===0) html += `<div class="small">- 위반 없음</div>`;
   else {
-    html += "<div style='overflow:auto;max-height:160px;'><table><thead><tr><th>코드</th><th>반</th><th>동반 인원</th></tr></thead><tbody>";
+    html += "<div style='overflow:auto;max-height:160px;'><previewTableEl><thead><tr><th>코드</th><th>반</th><th>동반 인원</th></tr></thead><tbody>";
     for (const x of worstSep.slice(0,10)){
       html += `<tr><td>${x.code}</td><td>${x.cls}</td><td>${x.k}</td></tr>`;
     }
-    html += "</tbody></table></div>";
+    html += "</tbody></previewTableEl></div>";
   }
 
   html += `<div style="height:10px"></div><div class="small"><b>배려 분산(상위 10)</b></div>`;
   if (worstCare.length===0) html += `<div class="small">- 분산 없음(또는 코드 없음)</div>`;
   else {
-    html += "<div style='overflow:auto;max-height:160px;'><table><thead><tr><th>코드</th><th>분산된 반</th><th>총 인원</th></tr></thead><tbody>";
+    html += "<div style='overflow:auto;max-height:160px;'><previewTableEl><thead><tr><th>코드</th><th>분산된 반</th><th>총 인원</th></tr></thead><tbody>";
     for (const x of worstCare.slice(0,10)){
       html += `<tr><td>${x.code}</td><td>${x.classes}</td><td>${x.total}</td></tr>`;
     }
-    html += "</tbody></table></div>";
+    html += "</tbody></previewTableEl></div>";
   }
 
   violationsDiv.innerHTML = html;
 }
 
-function renderTable(filterClass){
+function renderPreviewTable(rows, maxRows=20){
   const rows = payload.resultRows.slice().sort((a,b)=>a["반"]-b["반"] || a["학생명"].localeCompare(b["학생명"]));
   const filtered = (filterClass==="all") ? rows : rows.filter(r=>String(r["반"])===String(filterClass));
 
-  table.innerHTML = "";
+  previewTableEl.innerHTML = "";
   if (filtered.length===0) return;
 
   const cols = Object.keys(filtered[0]);
@@ -675,7 +675,7 @@ function renderTable(filterClass){
     trh.appendChild(th);
   }
   thead.appendChild(trh);
-  table.appendChild(thead);
+  previewTableEl.appendChild(thead);
 
   const tbody = document.createElement("tbody");
   for (const r of filtered){
@@ -687,7 +687,7 @@ function renderTable(filterClass){
     }
     tbody.appendChild(tr);
   }
-  table.appendChild(tbody);
+  previewTableEl.appendChild(tbody);
 
   tableMeta.textContent = `표시 ${filtered.length}명`;
 }
