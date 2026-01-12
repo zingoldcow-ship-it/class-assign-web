@@ -1,4 +1,26 @@
-console.log('class-assign webapp v3.2.1 loaded');
+console.log('class-assign webapp v3.2.2 loaded');
+
+window.addEventListener('error', (e)=>{
+  try{
+    const errorsDiv = document.getElementById("errors");
+    const statusPill = document.getElementById("statusPill");
+    if (statusPill) statusPill.textContent = "오류";
+    if (errorsDiv){
+      errorsDiv.textContent = "스크립트 오류: " + (e?.message || e) + (e?.filename ? ("\n" + e.filename + ":" + e.lineno) : "");
+    }
+  }catch(_){}
+});
+window.addEventListener('unhandledrejection', (e)=>{
+  try{
+    const errorsDiv = document.getElementById("errors");
+    const statusPill = document.getElementById("statusPill");
+    if (statusPill) statusPill.textContent = "오류";
+    if (errorsDiv){
+      errorsDiv.textContent = "비동기 오류: " + (e?.reason?.message || e?.reason || e);
+    }
+  }catch(_){}
+});
+
 
 const REQUIRED_COLUMNS = ['학생명','성별','학업성취','교우관계','학부모민원','특수여부','ADHD여부','분리요청코드','배려요청코드','비고'];
 
@@ -48,6 +70,21 @@ function buildHeaderMap(headers){
     if (std && !map[std]) map[std] = h; // 첫 매칭 우선
   });
   return map;
+}
+
+function pickBestSheetName(workbook){
+  // 첫 번째가 비어있을 수 있어, 데이터가 가장 많은 시트를 선택
+  let best = workbook.SheetNames[0];
+  let bestRows = -1;
+  for (const name of workbook.SheetNames){
+    const ws = workbook.Sheets[name];
+    const arr = XLSX.utils.sheet_to_json(ws, {defval:"", raw:false});
+    if (arr.length > bestRows){
+      bestRows = arr.length;
+      best = name;
+    }
+  }
+  return best;
 }
 
 // 반배정 웹앱 v3 (브라우저 전용)
@@ -435,7 +472,8 @@ fileInput.addEventListener("change", async (e)=>{
   try{
     const data = await file.arrayBuffer();
     const wb = XLSX.read(data, {type:"array"});
-    const ws = wb.Sheets[wb.SheetNames[0]];
+    const bestName = pickBestSheetName(wb);
+    const ws = wb.Sheets[bestName];
     rawRows = XLSX.utils.sheet_to_json(ws, {defval:""});
     if (!rawRows || rawRows.length===0){
       setErrors("엑셀에서 데이터를 읽지 못했어요. 첫 시트에 데이터가 있는지 확인해주세요.");
