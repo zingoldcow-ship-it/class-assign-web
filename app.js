@@ -238,7 +238,12 @@ console.log('class-assign webapp v3.3.2 loaded');
   function splitCodes(x){
     const s = safeString(x);
     if (!s) return [];
-    return s.split(/[,\s;]+/).map(t=>t.trim()).filter(Boolean);
+    // 흔한 '없음' 표기들은 코드로 취급하지 않습니다.
+    const NO = new Set(["-","–","—","없음","없","x","X","0","N","n","미입력","무"]);
+    return s
+      .split(/[,\s;]+/)
+      .map(t=>t.trim())
+      .filter(t=>t && !NO.has(t));
   }
 
   // ----- Setup preview table -----
@@ -270,7 +275,16 @@ console.log('class-assign webapp v3.3.2 loaded');
     previewTableEl.appendChild(tbody);
   }
 
-  function setErrors(msg){ errorsDiv.textContent = msg || ""; }
+  function setErrors(msg){
+    const m = msg || "";
+    if (errorsDiv) errorsDiv.textContent = m;
+    // 결과 탭에 있을 때도 에러가 보이도록 리포트 영역에 함께 표시
+    try{
+      if (!m) return;
+      const v = document.getElementById('violations');
+      if (v) v.innerHTML = `<div class="danger">${escapeHtml(m)}</div>`;
+    }catch(e){}
+  }
 
   function summarize(rows){
     const n = rows.length;
@@ -435,7 +449,7 @@ console.log('class-assign webapp v3.3.2 loaded');
     const sepSet = new Set();
     const careSet = new Set();
 
-    // 분리: 같은 반에 2명 이상 함께 배정된 그룹 구성원을 '위반 학생'으로 집계
+    // 분리: 같은 반에 2명 이상 함께 배정된 코드 그룹 구성원을 '위반 학생'으로 집계
     for (const [, idxs] of groups.sep.entries()){
       const perClass = new Map();
       for (const i of idxs){
@@ -443,6 +457,31 @@ console.log('class-assign webapp v3.3.2 loaded');
         if (!perClass.has(c)) perClass.set(c, []);
         perClass.get(c).push(i);
       }
+      for (const arr of perClass.values()){
+        if (arr.length >= 2){
+          for (const i of arr) sepSet.add(i);
+        }
+      }
+    }
+
+    // 배려(학생 기준): 같은 코드 그룹 내에서 '같은 반 친구가 1명도 없는 학생'만 미충족으로 집계
+    for (const [, idxs] of groups.care.entries()){
+      const perClassCount = new Map();
+      for (const i of idxs){
+        const c = assign[i];
+        perClassCount.set(c, (perClassCount.get(c)||0) + 1);
+      }
+      for (const i of idxs){
+        const c = assign[i];
+        // 자기 자신 제외하고 같은 반에 같은 코드 친구가 있어야 '충족'
+        if ((perClassCount.get(c) || 0) <= 1){
+          careSet.add(i);
+        }
+      }
+    }
+
+    return { sepStudents: sepSet.size, careStudents: careSet.size };
+  }
       for (const arr of perClass.values()){
         if (arr.length >= 2){
           for (const i of arr) sepSet.add(i);
@@ -612,6 +651,16 @@ console.log('class-assign webapp v3.3.2 loaded');
 
     if (!studentRows || studentRows.length === 0) return;
 
+    // 먼저 결과 탭을 열고 진행 상황을 표시(클릭했는데 반응 없는 것처럼 보이는 문제 방지)
+    try{
+      if (tabResultBtn){
+        tabResultBtn.disabled = false;
+    try{ tabResultBtn.removeAttribute('disabled'); }catch(e){}
+        tabResultBtn.removeAttribute("disabled");
+      }
+      showTab("result");
+    }catch(e){}
+
     const classCount = Math.max(2, Math.min(30, parseInt(classCountEl.value||"10",10)));
     const iterations = Math.max(200, Math.min(60000, parseInt(iterationsEl.value||"8000",10)));
     const seed = Math.max(0, Math.min(999999, parseInt(seedEl.value||"42",10)));
@@ -670,6 +719,7 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
 
     showOverlay(false);
     tabResultBtn.disabled = false;
+    try{ tabResultBtn.removeAttribute('disabled'); }catch(e){}
     statusPill.textContent = "완료";
     try{ renderResult(payload); }catch(e){ console.error(e); setErrors("결과 렌더링 오류: " + (e?.message || e)); }
     showTab("result");
