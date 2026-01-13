@@ -445,11 +445,14 @@ console.log('class-assign webapp v3.3.2 loaded');
   }
 
   // 분리/배려 '쌍' 수치가 너무 크게 느껴질 수 있어, 실제로 영향을 받은 '학생 수'도 계산합니다.
+  // 분리/배려 '쌍' 수치가 크게 느껴질 수 있어, 실제로 영향을 받은 '학생 수'도 함께 계산합니다.
+  // - 분리 미충족 학생: 같은 분리코드 그룹이 같은 반에 2명 이상 존재할 때, 그 반에 속한 해당 그룹 학생들
+  // - 배려 미충족 학생: 같은 배려코드 그룹(2명 이상) 중에서, '같은 반에 같은 코드 친구가 1명도 없는' 학생
   function computeViolationStudentCounts(assign, groups){
     const sepSet = new Set();
     const careSet = new Set();
 
-    // 분리: 같은 반에 2명 이상 함께 배정된 코드 그룹 구성원을 '위반 학생'으로 집계
+    // 분리: 같은 반에 2명 이상 함께 배정된 경우, 해당 학생들을 집계
     for (const [, idxs] of groups.sep.entries()){
       const perClass = new Map();
       for (const i of idxs){
@@ -464,17 +467,18 @@ console.log('class-assign webapp v3.3.2 loaded');
       }
     }
 
-    // 배려(학생 기준): 같은 코드 그룹 내에서 '같은 반 친구가 1명도 없는 학생'만 미충족으로 집계
+    // 배려: 같은 코드 그룹(2명 이상)에서, 같은 반 친구가 1명도 없는 학생만 집계
     for (const [, idxs] of groups.care.entries()){
-      const perClassCount = new Map();
+      if (idxs.length < 2) continue;
+      // 반별 인원 수(해당 코드 그룹 내)
+      const classCounts = new Map();
       for (const i of idxs){
         const c = assign[i];
-        perClassCount.set(c, (perClassCount.get(c)||0) + 1);
+        classCounts.set(c, (classCounts.get(c) || 0) + 1);
       }
       for (const i of idxs){
         const c = assign[i];
-        // 자기 자신 제외하고 같은 반에 같은 코드 친구가 있어야 '충족'
-        if ((perClassCount.get(c) || 0) <= 1){
+        if ((classCounts.get(c) || 0) < 2){
           careSet.add(i);
         }
       }
@@ -482,26 +486,6 @@ console.log('class-assign webapp v3.3.2 loaded');
 
     return { sepStudents: sepSet.size, careStudents: careSet.size };
   }
-      for (const arr of perClass.values()){
-        if (arr.length >= 2){
-          for (const i of arr) sepSet.add(i);
-        }
-      }
-    }
-
-    // 배려: 같은 그룹이 여러 반으로 나뉜 경우, 해당 그룹 구성원을 '미충족 학생'으로 집계
-    for (const [, idxs] of groups.care.entries()){
-      const classes = new Set();
-      for (const i of idxs) classes.add(assign[i]);
-      if (classes.size >= 2){
-        for (const i of idxs) careSet.add(i);
-      }
-    }
-
-    return { sepStudents: sepSet.size, careStudents: careSet.size };
-  }
-
-
 
   function initialAssignment(rows, classCount, rng){
     const idxs = rows.map((_,i)=>i);
