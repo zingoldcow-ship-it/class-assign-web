@@ -3,7 +3,7 @@
 // - 결과 탭 테이블/요약 렌더링 버그 수정
 // - 함수/변수 중복 선언(Identifier already declared) 오류 수정
 
-console.log('class-assign webapp v3.3.2 loaded');
+console.log('class-assign webapp v3.4.2 loaded');
 
 // 앱 전체를 IIFE로 감싸 전역변수/함수 충돌을 줄입니다.
 (()=>{
@@ -160,6 +160,7 @@ console.log('class-assign webapp v3.3.2 loaded');
   const wParentV = document.getElementById("wParentV");
   const sepStrengthEl = document.getElementById("sepStrength");
   const careStrengthEl = document.getElementById("careStrength");
+  const adhdCapEl = document.getElementById("adhdCap");
   const runBtn = document.getElementById("runBtn");
   const overlay = document.getElementById("overlay");
 
@@ -465,11 +466,18 @@ console.log('class-assign webapp v3.3.2 loaded');
 
     let adhdSqErr = 0;
     let adhdOverflow = 0;
+    // 사용자가 'ADHD 반당 최대 인원'을 지정한 경우, 초과 반은 매우 큰 벌점(하드캡)을 부여합니다.
+    let adhdHardCapOverflow = 0;
     for (let c=0;c<C;c++){
       const d = adhd[c] - adhdExpected;
       adhdSqErr += d*d;
       const over = adhd[c] - adhdIdealMax;
       if (over > 0) adhdOverflow += over*over;
+
+      if (weights && typeof weights.adhdCap === 'number' && isFinite(weights.adhdCap)){
+        const overCap = adhd[c] - weights.adhdCap;
+        if (overCap > 0) adhdHardCapOverflow += overCap*overCap;
+      }
     }
 
     let score =
@@ -479,6 +487,8 @@ console.log('class-assign webapp v3.3.2 loaded');
       6000*specOverflow +
       350*adhdSqErr +
       2500*adhdOverflow +
+      // 하드캡은 다른 항목보다 우선해서 지키도록 큰 벌점
+      2000000*adhdHardCapOverflow +
       weights.wParent*vParent +
       weights.wAcad*vAcad +
       weights.wPeer*vPeer;
@@ -778,7 +788,9 @@ console.log('class-assign webapp v3.3.2 loaded');
       wPeer: parseInt(wPeer.value,10),
       wParent: parseInt(wParent.value,10),
       sepPenalty: strengthToPenalty(sepStrengthEl.value, 'sep'),
-      carePenalty: strengthToPenalty(careStrengthEl.value, 'care')
+      carePenalty: strengthToPenalty(careStrengthEl.value, 'care'),
+      // ADHD 반당 최대 인원(선택). auto면 제한 없음.
+      adhdCap: (adhdCapEl && String(adhdCapEl.value||'auto') !== 'auto') ? Math.max(1, Math.min(5, parseInt(adhdCapEl.value,10))) : null
     };
 
     let payload = null;
@@ -953,6 +965,43 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
         if (classes.length >= 2) worstCare.push({code, classes: classes.join(","), total});
       }
 
+      // ----- helper: 3단계(좋음/보통/나쁨) 반별 요약 -----
+      function buildLevelReport(title, field){
+        const C = payload.meta.classCount;
+        const buckets = Array.from({length:C}, ()=>({good:0, normal:0, bad:0, total:0}));
+        for (const r of rows){
+          const cls = Math.max(1, parseInt(r["반"],10)) - 1;
+          if (cls < 0 || cls >= C) continue;
+          const v = safeString(r[field]);
+          if (v === "좋음") buckets[cls].good++;
+          else if (v === "나쁨") buckets[cls].bad++;
+          else buckets[cls].normal++;
+          buckets[cls].total++;
+        }
+
+        // 평균 점수(좋음=+1, 보통=0, 나쁨=-1)로 상/하위 반을 뽑아 보여줌
+        const scored = buckets.map((b, i)=>{
+          const score = (b.good - b.bad) / Math.max(1, b.total);
+          return {cls:i+1, score, ...b};
+        });
+        scored.sort((a,b)=>b.score-a.score);
+
+        const top = scored.slice(0,5);
+        const bottom = scored.slice(-5).reverse();
+        const max = scored[0];
+        const min = scored[scored.length-1];
+        const range = (max.score - min.score);
+
+        let out = "";
+        out += `<div style="height:12px"></div><div class="small"><b>${escapeHtml(title)}(반별 요약)</b></div>`;
+        out += `<div class="small">- 평균점수 범위: ${range.toFixed(2)} (최고: ${max.cls}반 ${max.score.toFixed(2)}, 최저: ${min.cls}반 ${min.score.toFixed(2)})</div>`;
+        out += "<div style='overflow:auto;max-height:160px;'><table><thead><tr><th>구분</th><th>반</th><th>평균점수</th><th>좋음</th><th>보통</th><th>나쁨</th></tr></thead><tbody>";
+        for (const x of top){ out += `<tr><td>상위</td><td>${x.cls}</td><td>${x.score.toFixed(2)}</td><td>${x.good}</td><td>${x.normal}</td><td>${x.bad}</td></tr>`; }
+        for (const x of bottom){ out += `<tr><td>하위</td><td>${x.cls}</td><td>${x.score.toFixed(2)}</td><td>${x.good}</td><td>${x.normal}</td><td>${x.bad}</td></tr>`; }
+        out += "</tbody></table></div>";
+        return out;
+      }
+
       let html = "";
       html += `<div class="small"><b>분리 위반(상위 10)</b></div>`;
       if (worstSep.length === 0) html += `<div class="small">- 위반 없음</div>`;
@@ -969,6 +1018,11 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
         for (const x of worstCare.slice(0,10)) html += `<tr><td>${x.code}</td><td>${x.classes}</td><td>${x.total}</td></tr>`;
         html += "</tbody></table></div>";
       }
+
+      // ----- 추가 리포트: 학부모민원/학업성취/교우관계 -----
+      html += buildLevelReport("학부모민원", "학부모민원");
+      html += buildLevelReport("학업성취", "학업성취");
+      html += buildLevelReport("교우관계", "교우관계");
 
       violationsDiv.innerHTML = html;
     }
