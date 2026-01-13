@@ -3,7 +3,7 @@
 // - 결과 탭 테이블/요약 렌더링 버그 수정
 // - 함수/변수 중복 선언(Identifier already declared) 오류 수정
 
-console.log('class-assign webapp v3.2.5 loaded');
+console.log('class-assign webapp v3.2.9 loaded');
 
 // 앱 전체를 IIFE로 감싸 전역변수/함수 충돌을 줄입니다.
 (()=>{
