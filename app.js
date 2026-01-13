@@ -74,6 +74,18 @@ console.log('class-assign webapp v3.4.2 loaded');
         if (nh === normHeader(a)) return std;
       }
     }
+
+
+    // UI helper: collapsible section (safe, no JS needed)
+    function wrapAsToggle(title, innerHtml, open = false) {
+      return `
+        <details class="toggle-block" ${open ? "open" : ""}>
+          <summary class="toggle-summary">${title}</summary>
+          <div class="toggle-body">${innerHtml}</div>
+        </details>
+      `;
+    }
+
     for (const std of Object.keys(HEADER_ALIASES)){
       if (nh === normHeader(std)) return std;
     }
@@ -978,6 +990,7 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
 
       // ----- helper: 3단계(좋음/보통/나쁨) 반별 요약 -----
       function buildLevelReport(title, field){
+        let block = \"\";
         const C = payload.meta.classCount;
         const buckets = Array.from({length:C}, ()=>({good:0, normal:0, bad:0, total:0}));
         for (const r of rows){
@@ -1026,40 +1039,40 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
       const genderDev = (male&&female) ? Math.max(maxDev(male), maxDev(female)) : 0;
       const specDev = maxDev(spec||[]);
       const adhdDev = maxDev(adhd||[]);
-      html += `<div class="small"><b>요약</b></div>`;
-      html += `<div class="small">- 성비(남/여) 반별 편차(평균 대비): 최대 ${genderDev.toFixed(1)}명</div>`;
-      html += `<div class="small">- 특수 반별 편차(평균 대비): 최대 ${specDev.toFixed(1)}명</div>`;
-      html += `<div class="small">- ADHD 반별 편차(평균 대비): 최대 ${adhdDev.toFixed(1)}명</div>`;
+      block += `<div class="small"><b>요약</b></div>`;
+      block += `<div class="small">- 성비(남/여) 반별 편차(평균 대비): 최대 ${genderDev.toFixed(1)}명</div>`;
+      block += `<div class="small">- 특수 반별 편차(평균 대비): 최대 ${specDev.toFixed(1)}명</div>`;
+      block += `<div class="small">- ADHD 반별 편차(평균 대비): 최대 ${adhdDev.toFixed(1)}명</div>`;
       if(payload?.meta?.adhdCap && payload.meta.adhdCap !== "auto"){
         // 상한 초과 반 수
         const cap = Number(payload.meta.adhdCap);
         if(!Number.isNaN(cap) && (adhd||[]).length){
           const over = (adhd||[]).filter(v=>v>cap).length;
-          html += `<div class="small">- ADHD 반당 최대 ${cap}명 제한: 초과 반 ${over}개</div>`;
+          block += `<div class="small">- ADHD 반당 최대 ${cap}명 제한: 초과 반 ${over}개</div>`;
         }
       }
-      html += `<div style="height:10px"></div>`;
-      html += `<div class="small"><b>분리 위반(상위 10)</b></div>`;
-      if (worstSep.length === 0) html += `<div class="small">- 위반 없음</div>`;
+      block += `<div style="height:10px"></div>`;
+      block += `<div class="small"><b>분리 위반(상위 10)</b></div>`;
+      if (worstSep.length === 0) block += `<div class="small">- 위반 없음</div>`;
       else {
-        html += "<div style='overflow:auto;max-height:160px;'><table><thead><tr><th>코드</th><th>반</th><th>동반 인원</th></tr></thead><tbody>";
-        for (const x of worstSep.slice(0,10)) html += `<tr><td>${x.code}</td><td>${x.cls}</td><td>${x.k}</td></tr>`;
-        html += "</tbody></table></div>";
+        block += "<div style='overflow:auto;max-height:160px;'><table><thead><tr><th>코드</th><th>반</th><th>동반 인원</th></tr></thead><tbody>";
+        for (const x of worstSep.slice(0,10)) block += `<tr><td>${x.code}</td><td>${x.cls}</td><td>${x.k}</td></tr>`;
+        block += "</tbody></table></div>";
+        return block;
       }
 
-      html += `<div style="height:10px"></div><div class="small"><b>배려 분산(상위 10)</b></div>`;
-      if (worstCare.length === 0) html += `<div class="small">- 분산 없음(또는 코드 없음)</div>`;
+      block += `<div style="height:10px"></div><div class="small"><b>배려 분산(상위 10)</b></div>`;
+      if (worstCare.length === 0) block += `<div class="small">- 분산 없음(또는 코드 없음)</div>`;
       else {
-        html += "<div style='overflow:auto;max-height:160px;'><table><thead><tr><th>코드</th><th>분산된 반</th><th>총 인원</th></tr></thead><tbody>";
-        for (const x of worstCare.slice(0,10)) html += `<tr><td>${x.code}</td><td>${x.classes}</td><td>${x.total}</td></tr>`;
-        html += "</tbody></table></div>";
+        block += "<div style='overflow:auto;max-height:160px;'><table><thead><tr><th>코드</th><th>분산된 반</th><th>총 인원</th></tr></thead><tbody>";
+        for (const x of worstCare.slice(0,10)) block += `<tr><td>${x.code}</td><td>${x.classes}</td><td>${x.total}</td></tr>`;
+        block += "</tbody></table></div>";
       }
 
-      // ----- 추가 리포트: 학부모민원/학업성취/교우관계 -----
-      html += buildLevelReport("학부모민원", "학부모민원");
-      html += buildLevelReport("학업성취", "학업성취");
-      html += buildLevelReport("교우관계", "교우관계");
-
+      // ----- 추가 리포트: 학부모민원/학업성취/교우관계 (토글) -----
+      html += wrapAsToggle("📌 학부모민원 요약 보기", buildLevelReport("학부모민원", "학부모민원"), false);
+      html += wrapAsToggle("📘 학업성취 요약 보기", buildLevelReport("학업성취", "학업성취"), false);
+      html += wrapAsToggle("🤝 교우관계 요약 보기", buildLevelReport("교우관계", "교우관계"), false);
       violationsDiv.innerHTML = html;
     }
 

@@ -48,7 +48,28 @@ option{background:#0b1220;color:#e5e7eb}
     .chartBox{height:260px;position:relative}
     canvas{width:100% !important;height:100% !important;display:block}
     a{color:#b9c9ff}
-  </style>
+  
+/* Collapsible report sections */
+.toggle-block{
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;
+  margin-top:10px;
+  background:rgba(255,255,255,.02);
+  overflow:hidden;
+}
+.toggle-summary{
+  cursor:pointer;
+  padding:10px 12px;
+  font-weight:800;
+  user-select:none;
+}
+.toggle-summary::marker{ color: rgba(255,255,255,.55); }
+.toggle-body{
+  padding:10px 12px 14px;
+  border-top:1px solid rgba(255,255,255,.08);
+}
+
+</style>
 </head>
 <body>
 <header>
@@ -331,6 +352,6 @@ option{background:#0b1220;color:#e5e7eb}
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="./app.js?v=343"></script>
+<script src="./app.js?v=346"></script>
 </body>
 </html>
