@@ -425,9 +425,6 @@ console.log('class-assign webapp v3.3.2 loaded');
     const vCnt = variance(cnt);
     const vMale = variance(male);
     const vFemale = variance(female);
-    const vSpec = variance(spec);
-    const vAdhd = variance(adhd);
-
     const vAcad = variance(acadSum);
     const vPeer = variance(peerSum);
     const vParent = variance(parentSum);
@@ -444,14 +441,47 @@ console.log('class-assign webapp v3.3.2 loaded');
       genderSqErr += d*d;
     }
 
+    // 2순위: 특수(가능하면 0~1명/반). 총 특수 인원과 반 수를 바탕으로 이상적인 최소/최대치를 만들고,
+    // 최대치를 초과하는 반은 매우 큰 벌점을 부여합니다.
+    const totalSpec = spec.reduce((a,b)=>a+b,0);
+    const specExpected = totalSpec / (C || 1);
+    const specIdealMin = Math.floor(specExpected);
+    const specIdealMax = Math.ceil(specExpected);
+
+    let specSqErr = 0;
+    let specOverflow = 0;
+    for (let c=0;c<C;c++){
+      const d = spec[c] - specExpected;
+      specSqErr += d*d;
+      const over = spec[c] - specIdealMax;
+      if (over > 0) specOverflow += over*over;
+    }
+
+    // 3순위: ADHD(가능하면 0~1명/반, 여건상 불가하면 균등 분산).
+    const totalAdhd = adhd.reduce((a,b)=>a+b,0);
+    const adhdExpected = totalAdhd / (C || 1);
+    const adhdIdealMin = Math.floor(adhdExpected);
+    const adhdIdealMax = Math.ceil(adhdExpected);
+
+    let adhdSqErr = 0;
+    let adhdOverflow = 0;
+    for (let c=0;c<C;c++){
+      const d = adhd[c] - adhdExpected;
+      adhdSqErr += d*d;
+      const over = adhd[c] - adhdIdealMax;
+      if (over > 0) adhdOverflow += over*over;
+    }
+
     let score =
       80*vCnt +
-      250*genderSqErr +
-      120*vSpec +
-      90*vAdhd +
+      260*genderSqErr +
+      800*specSqErr +
+      6000*specOverflow +
+      350*adhdSqErr +
+      2500*adhdOverflow +
+      weights.wParent*vParent +
       weights.wAcad*vAcad +
-      weights.wPeer*vPeer +
-      weights.wParent*vParent;
+      weights.wPeer*vPeer;
 
     // Separation penalties
     let sepViol = 0;
