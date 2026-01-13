@@ -348,6 +348,11 @@ console.log('class-assign webapp v3.3.2 loaded');
   function buildCodeGroups(rows){
     const sep = new Map();
     const care = new Map();
+
+    // '코드' 뿐 아니라 '학생명(또는 학번 형태)'를 직접 넣는 경우도 반영합니다.
+    // 예: 배려요청학생에 '학생026'을 넣으면, 해당 학생과 같은 반이 되도록(가능하면) 처리
+    const nameToIdx = new Map();
+    rows.forEach((r, i)=>{ if (r?.name) nameToIdx.set(String(r.name).trim(), i); });
     rows.forEach((r, idx)=>{
       for (const c of r.sepCodes){
         if (!sep.has(c)) sep.set(c, []);
@@ -357,7 +362,31 @@ console.log('class-assign webapp v3.3.2 loaded');
         if (!care.has(c)) care.set(c, []);
         care.get(c).push(idx);
       }
+
+      // 1:1 요청(상대 학생명을 직접 적은 경우)도 그룹으로 추가
+      for (const c of r.sepCodes){
+        const j = nameToIdx.get(String(c).trim());
+        if (j !== undefined && j !== idx){
+          const a = Math.min(idx, j), b = Math.max(idx, j);
+          const key = `@sep_pair:${a}-${b}`;
+          if (!sep.has(key)) sep.set(key, []);
+          sep.get(key).push(a, b);
+        }
+      }
+      for (const c of r.careCodes){
+        const j = nameToIdx.get(String(c).trim());
+        if (j !== undefined && j !== idx){
+          const a = Math.min(idx, j), b = Math.max(idx, j);
+          const key = `@care_pair:${a}-${b}`;
+          if (!care.has(key)) care.set(key, []);
+          care.get(key).push(a, b);
+        }
+      }
     });
+
+    // 중복 제거
+    for (const [k,v] of [...sep.entries()]) sep.set(k, Array.from(new Set(v)));
+    for (const [k,v] of [...care.entries()]) care.set(k, Array.from(new Set(v)));
     for (const [k,v] of [...sep.entries()]) if (v.length < 2) sep.delete(k);
     for (const [k,v] of [...care.entries()]) if (v.length < 2) care.delete(k);
     return {sep, care};
@@ -403,9 +432,21 @@ console.log('class-assign webapp v3.3.2 loaded');
     const vPeer = variance(peerSum);
     const vParent = variance(parentSum);
 
+    // 성비는 현장에서는 1순위로 중요해요. '분산(분산도)'만 보지 말고,
+    // 각 반의 인원수에 비례한 '기대 남학생 수'에서 얼마나 벗어났는지(제곱오차)를 크게 벌점 줍니다.
+    const totalMale = male.reduce((a,b)=>a+b,0);
+    const total = rows.length || 1;
+    const maleRatio = totalMale / total;
+    let genderSqErr = 0;
+    for (let c=0;c<C;c++){
+      const expectedMale = cnt[c] * maleRatio;
+      const d = male[c] - expectedMale;
+      genderSqErr += d*d;
+    }
+
     let score =
       80*vCnt +
-      30*(vMale+vFemale) +
+      250*genderSqErr +
       120*vSpec +
       90*vAdhd +
       weights.wAcad*vAcad +
@@ -488,17 +529,30 @@ console.log('class-assign webapp v3.3.2 loaded');
   }
 
   function initialAssignment(rows, classCount, rng){
-    const idxs = rows.map((_,i)=>i);
-    for (let i=idxs.length-1;i>0;i--){
-      const j = randInt(rng, i+1);
-      [idxs[i], idxs[j]] = [idxs[j], idxs[i]];
+    // 초기 배치는 '성비'를 최대한 맞춘 상태에서 시작하면 결과가 훨씬 안정적입니다.
+    // 1) 남/여를 각각 셔플
+    // 2) 각 집합을 round-robin으로 반에 배치
+    const males = [];
+    const females = [];
+    const others = [];
+    rows.forEach((r,i)=>{
+      if (r.gender === '남') males.push(i);
+      else if (r.gender === '여') females.push(i);
+      else others.push(i);
+    });
+    function shuffle(a){
+      for (let i=a.length-1;i>0;i--){
+        const j = randInt(rng, i+1);
+        [a[i], a[j]] = [a[j], a[i]];
+      }
     }
+    shuffle(males); shuffle(females); shuffle(others);
+
     const assign = new Array(rows.length).fill(0);
     let c = 0;
-    for (const i of idxs){
-      assign[i] = c;
-      c = (c+1) % classCount;
-    }
+    for (const i of males){ assign[i] = c; c = (c+1)%classCount; }
+    for (const i of females){ assign[i] = c; c = (c+1)%classCount; }
+    for (const i of others){ assign[i] = c; c = (c+1)%classCount; }
     return assign;
   }
 
@@ -556,11 +610,12 @@ console.log('class-assign webapp v3.3.2 loaded');
       if (strength === 'medium') return 50000;
       return 15000;
     }
-    // care (같은 반 선호): 기존보다 강도를 더 크게 반영
-    if (strength === 'strict') return 50000;   // 가능한 한 같은 반
-    if (strength === 'strong') return 20000;
-    if (strength === 'medium') return 8000;
-    return 2000;
+    // care (같은 반 선호): 반 구성에서는 '후순위'인 경우가 많아 가중치를 낮게 둡니다.
+    // (성비/인원균등/특수/ADHD/학업/교우/민원 + 분리요청을 우선 반영)
+    if (strength === 'strict') return 20000;   // 가능한 한 같은 반
+    if (strength === 'strong') return 8000;
+    if (strength === 'medium') return 3000;
+    return 1000;
   }
 
   function validateRows(rows){
