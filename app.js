@@ -207,6 +207,21 @@ console.log('class-assign webapp v3.3.2 loaded');
     else runBtn.setAttribute("disabled", "");
   }
 
+
+  // 버튼 기본 타입 보정(어떤 컨테이너/테마에서는 submit으로 오작동할 수 있어 명시)
+  try{ if (runBtn) runBtn.type = "button"; }catch(e){}
+
+  // 실행 버튼 워치독: 엑셀을 정상 로드했는데도 disabled 속성이 남아 클릭이 안 되는 경우를 방지
+  // (캐시/브라우저별 disabled attribute 잔존 이슈 대응)
+  setInterval(()=>{
+    if (!runBtn) return;
+    const shouldEnable = !!(studentRows && studentRows.length>0);
+    if (shouldEnable && (runBtn.disabled || runBtn.hasAttribute("disabled"))){
+      setRunEnabled(true);
+    }
+  }, 500);
+
+
   function safeString(x){ return (x===null||x===undefined) ? "" : String(x).trim(); }
   function ynTo01(x){
     const v = safeString(x).toUpperCase();
@@ -413,12 +428,14 @@ console.log('class-assign webapp v3.3.2 loaded');
 
     return {score, sepViol, careMiss, cnt, male, female, spec, adhd, acadSum, peerSum, parentSum};
 
+  }
+
   // 분리/배려 '쌍' 수치가 너무 크게 느껴질 수 있어, 실제로 영향을 받은 '학생 수'도 계산합니다.
-  function computeViolationStudentCounts(rows, assign, groups){
+  function computeViolationStudentCounts(assign, groups){
     const sepSet = new Set();
     const careSet = new Set();
 
-    // 분리: 같은 반에 2명 이상 몰린 경우, 그 반에 속한 학생들을 위반 학생으로 집계
+    // 분리: 같은 반에 2명 이상 함께 배정된 그룹 구성원을 '위반 학생'으로 집계
     for (const [, idxs] of groups.sep.entries()){
       const perClass = new Map();
       for (const i of idxs){
@@ -433,7 +450,7 @@ console.log('class-assign webapp v3.3.2 loaded');
       }
     }
 
-    // 배려: 같은 그룹이 2개 이상 반으로 쪼개진 경우, 해당 그룹 구성원 전체를 미충족 학생으로 집계
+    // 배려: 같은 그룹이 여러 반으로 나뉜 경우, 해당 그룹 구성원을 '미충족 학생'으로 집계
     for (const [, idxs] of groups.care.entries()){
       const classes = new Set();
       for (const i of idxs) classes.add(assign[i]);
@@ -445,7 +462,7 @@ console.log('class-assign webapp v3.3.2 loaded');
     return { sepStudents: sepSet.size, careStudents: careSet.size };
   }
 
-  }
+
 
   function initialAssignment(rows, classCount, rng){
     const idxs = rows.map((_,i)=>i);
@@ -590,7 +607,9 @@ console.log('class-assign webapp v3.3.2 loaded');
   });
 
   // ----- Run optimization -----
-  runBtn?.addEventListener("click", async ()=>{
+  runBtn?.addEventListener("click", async (ev)=>{
+    try{ ev?.preventDefault?.(); ev?.stopPropagation?.(); }catch(e){}
+
     if (!studentRows || studentRows.length === 0) return;
 
     const classCount = Math.max(2, Math.min(30, parseInt(classCountEl.value||"10",10)));
@@ -616,7 +635,7 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
     const {best, bestAssign} = await optimize(studentRows, classCount, iterations, seed, weights, groups);
     const elapsedMs = Math.round(performance.now() - start);
 
-    const violCount = computeViolationStudentCounts(studentRows, bestAssign, groups);
+    const violCount = computeViolationStudentCounts(bestAssign, groups);
 
     // 결과 다운로드는 '업로드 양식의 열'을 최대한 유지하고, 표준 열은 값이 확실히 채워지도록 보정합니다.
     const resultRows = studentRows.map((r,i)=>{
