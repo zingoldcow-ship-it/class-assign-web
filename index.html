@@ -206,6 +206,29 @@
         </section>
       </section>
 
+      <section class="card" id="unsatisfiedCard">
+        <h2 class="panelTitle">🔍 미충족 학생 목록</h2>
+        <div class="small" style="margin-bottom:10px">
+          • <b>분리 미충족</b>은 ‘같은 분리요청학생(코드/상대학생)’이 같은 반에 함께 배정된 학생을 의미합니다.<br/>
+          • <b>배려 미충족</b>은 ‘같은 배려요청학생(코드/상대학생)’ 친구가 <b>자기 반에 1명도 없는</b> 학생을 의미합니다.
+        </div>
+        <details open>
+          <summary style="cursor:pointer; font-weight:900;">분리 미충족 목록 <span class="small" id="unsatSepMeta"></span></summary>
+          <div style="height:8px"></div>
+          <div style="overflow:auto; max-height: 280px;">
+            <table id="unsatSepTable"></table>
+          </div>
+        </details>
+        <div style="height:12px"></div>
+        <details>
+          <summary style="cursor:pointer; font-weight:900;">배려 미충족 목록 <span class="small" id="unsatCareMeta"></span></summary>
+          <div style="height:8px"></div>
+          <div style="overflow:auto; max-height: 280px;">
+            <table id="unsatCareTable"></table>
+          </div>
+        </details>
+      </section>
+
       <section class="card">
         <h2 class="panelTitle">📈 그래프(반별 분포)</h2>
         <div class="small">* 안정성을 위해 차트는 반응형(responsive) OFF 상태로 렌더링합니다.</div>
@@ -294,6 +317,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="./app.js?v=339"></script>
+<script src="./app.js?v=340"></script>
 </body>
 </html>

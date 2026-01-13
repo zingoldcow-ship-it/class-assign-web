@@ -485,47 +485,86 @@ console.log('class-assign webapp v3.3.2 loaded');
 
   }
 
-  // 분리/배려 '쌍' 수치가 너무 크게 느껴질 수 있어, 실제로 영향을 받은 '학생 수'도 계산합니다.
-  // 분리/배려 '쌍' 수치가 크게 느껴질 수 있어, 실제로 영향을 받은 '학생 수'도 함께 계산합니다.
-  // - 분리 미충족 학생: 같은 분리코드 그룹이 같은 반에 2명 이상 존재할 때, 그 반에 속한 해당 그룹 학생들
-  // - 배려 미충족 학생: 같은 배려코드 그룹(2명 이상) 중에서, '같은 반에 같은 코드 친구가 1명도 없는' 학생
-  function computeViolationStudentCounts(assign, groups){
+  // 분리/배려 '미충족'을 쌍(pair)뿐 아니라 '학생 목록'으로도 보여주기 위한 상세 계산
+  // - 분리 미충족: 같은 분리요청학생(코드/상대학생)이 같은 반에 함께 배정된 학생
+  // - 배려 미충족: 같은 배려요청학생(코드/상대학생) 친구가 자기 반에 1명도 없는 학생
+  function computeUnsatisfiedDetails(rows, assign, groups){
     const sepSet = new Set();
     const careSet = new Set();
+    const sepItems = [];
+    const careItems = [];
 
-    // 분리: 같은 반에 2명 이상 함께 배정된 경우, 해당 학생들을 집계
-    for (const [, idxs] of groups.sep.entries()){
+    function labelForKey(key, kind){
+      const s = String(key);
+      if (s.startsWith('@sep_pair:') || s.startsWith('@care_pair:')){
+        const parts = s.split(':')[1] || '';
+        const ab = parts.split('-');
+        const a = parseInt(ab[0],10); const b = parseInt(ab[1],10);
+        const an = rows[a]?.name || `#${a}`;
+        const bn = rows[b]?.name || `#${b}`;
+        return `${an} ↔ ${bn}`;
+      }
+      return s;
+    }
+
+    // 분리
+    for (const [code, idxs] of groups.sep.entries()){
       const perClass = new Map();
       for (const i of idxs){
         const c = assign[i];
         if (!perClass.has(c)) perClass.set(c, []);
         perClass.get(c).push(i);
       }
-      for (const arr of perClass.values()){
-        if (arr.length >= 2){
-          for (const i of arr) sepSet.add(i);
+      for (const [cls, arr] of perClass.entries()){
+        if (arr.length < 2) continue;
+        const names = arr.map(i=>rows[i]?.name || '').filter(Boolean);
+        for (const i of arr){
+          sepSet.add(i);
+          sepItems.push({
+            kind: '분리',
+            code: labelForKey(code,'sep'),
+            student: rows[i]?.name || '',
+            classNo: (assign[i] + 1),
+            withStudents: names.join(', ')
+          });
         }
       }
     }
 
-    // 배려: 같은 코드 그룹(2명 이상)에서, 같은 반 친구가 1명도 없는 학생만 집계
-    for (const [, idxs] of groups.care.entries()){
+    // 배려
+    for (const [code, idxs] of groups.care.entries()){
       if (idxs.length < 2) continue;
-      // 반별 인원 수(해당 코드 그룹 내)
       const classCounts = new Map();
       for (const i of idxs){
         const c = assign[i];
         classCounts.set(c, (classCounts.get(c) || 0) + 1);
       }
+      const groupNames = idxs.map(i=>rows[i]?.name || '').filter(Boolean);
       for (const i of idxs){
         const c = assign[i];
         if ((classCounts.get(c) || 0) < 2){
           careSet.add(i);
+          careItems.push({
+            kind: '배려',
+            code: labelForKey(code,'care'),
+            student: rows[i]?.name || '',
+            classNo: (assign[i] + 1),
+            group: groupNames.join(', ')
+          });
         }
       }
     }
 
-    return { sepStudents: sepSet.size, careStudents: careSet.size };
+    // 보기 좋게 정렬
+    sepItems.sort((a,b)=>a.classNo-b.classNo || String(a.code).localeCompare(String(b.code)) || String(a.student).localeCompare(String(b.student)));
+    careItems.sort((a,b)=>a.classNo-b.classNo || String(a.code).localeCompare(String(b.code)) || String(a.student).localeCompare(String(b.student)));
+
+    return {
+      sepStudents: sepSet.size,
+      careStudents: careSet.size,
+      sepItems,
+      careItems
+    };
   }
 
   function initialAssignment(rows, classCount, rng){
@@ -723,7 +762,7 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
     const {best, bestAssign} = await optimize(studentRows, classCount, iterations, seed, weights, groups);
     const elapsedMs = Math.round(performance.now() - start);
 
-    const violCount = computeViolationStudentCounts(bestAssign, groups);
+    const unsat = computeUnsatisfiedDetails(studentRows, bestAssign, groups);
 
     // 결과 다운로드는 '업로드 양식의 열'을 최대한 유지하고, 표준 열은 값이 확실히 채워지도록 보정합니다.
     const resultRows = studentRows.map((r,i)=>{
@@ -751,9 +790,10 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
 
     const payload = {
       meta: { total: studentRows.length, classCount, iterations, seed, elapsedMs, weights, sepStrength: sepStrengthEl.value, careStrength: careStrengthEl.value },
-      best: { score: best.score, sepPairs: best.sepViol, carePairs: best.careMiss, sepStudents: violCount.sepStudents, careStudents: violCount.careStudents },
+      best: { score: best.score, sepPairs: best.sepViol, carePairs: best.careMiss, sepStudents: unsat.sepStudents, careStudents: unsat.careStudents },
       arrays: { cnt: best.cnt, male: best.male, female: best.female, spec: best.spec, adhd: best.adhd },
-      resultRows
+      resultRows,
+      unsatisfied: { sepItems: unsat.sepItems, careItems: unsat.careItems }
     };
 
     showOverlay(false);
@@ -778,12 +818,62 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
   const classFilter = document.getElementById("classFilter");
   const tableMeta = document.getElementById("tableMeta");
   const downloadBtn = document.getElementById("downloadBtn");
+  const unsatSepMeta = document.getElementById("unsatSepMeta");
+  const unsatCareMeta = document.getElementById("unsatCareMeta");
+  const unsatSepTable = document.getElementById("unsatSepTable");
+  const unsatCareTable = document.getElementById("unsatCareTable");
 
   function renderResult(payload){
     metaPill.textContent = `${payload.meta.total}명 · ${payload.meta.classCount}반 · ${payload.meta.iterations.toLocaleString()}회 · seed ${payload.meta.seed} · ${payload.meta.elapsedMs.toLocaleString()}ms`;
     scorePill.textContent = `Score: ${Math.round(payload.best.score).toLocaleString()}`;
     sepPill.textContent = `분리 미충족: ${payload.best.sepStudents.toLocaleString()}명 (위반 ${payload.best.sepPairs.toLocaleString()}쌍)`;
     carePill.textContent = `배려 미충족: ${payload.best.careStudents.toLocaleString()}명 (미충족 ${payload.best.carePairs.toLocaleString()}쌍)`;
+
+    function renderUnsatisfiedTables(){
+      const sep = payload?.unsatisfied?.sepItems || [];
+      const care = payload?.unsatisfied?.careItems || [];
+
+      if (unsatSepMeta) unsatSepMeta.textContent = `(${sep.length.toLocaleString()}건)`;
+      if (unsatCareMeta) unsatCareMeta.textContent = `(${care.length.toLocaleString()}건)`;
+
+      function renderTable(el, cols, rows){
+        if (!el) return;
+        el.innerHTML = '';
+        const thead = document.createElement('thead');
+        const trh = document.createElement('tr');
+        for (const c of cols){
+          const th = document.createElement('th');
+          th.textContent = c;
+          trh.appendChild(th);
+        }
+        thead.appendChild(trh);
+        el.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        for (const r of rows){
+          const tr = document.createElement('tr');
+          for (const c of cols){
+            const td = document.createElement('td');
+            td.textContent = (r[c]===null||r[c]===undefined) ? '' : String(r[c]);
+            tr.appendChild(td);
+          }
+          tbody.appendChild(tr);
+        }
+        el.appendChild(tbody);
+      }
+
+      renderTable(
+        unsatSepTable,
+        ["학생명","반","분리요청","같은반 학생"],
+        sep.map(x=>({"학생명":x.student,"반":x.classNo,"분리요청":x.code,"같은반 학생":x.withStudents}))
+      );
+
+      renderTable(
+        unsatCareTable,
+        ["학생명","반","배려요청","같은 코드 그룹"],
+        care.map(x=>({"학생명":x.student,"반":x.classNo,"배려요청":x.code,"같은 코드 그룹":x.group}))
+      );
+    }
 
     function renderClassSummary(){
       const C = payload.meta.classCount;
@@ -939,6 +1029,9 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
         options:{ responsive:false, animation:false, plugins:{ legend:{ position:"bottom" }}, scales:{ x:{ stacked:true }, y:{ stacked:true, beginAtZero:true } } }
       });
     }
+
+    // 렌더 실행 순서
+    renderUnsatisfiedTables();
 
     downloadBtn.onclick = ()=>{
       // 다운로드 파일은 "새로운 반"(1반→2반→...) 기준으로 정렬
