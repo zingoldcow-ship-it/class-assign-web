@@ -31,9 +31,6 @@
     .kv{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted);margin-top:6px}
     button{background:var(--accent);border:none;color:#071022;padding:11px 12px;border-radius:12px;font-weight:900;cursor:pointer;width:100%}
     .btnSecondary{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);color:var(--text)}
-    .btnRow{display:flex;gap:8px;align-items:center}
-    .btnRow a{flex:1;text-decoration:none}
-    .btnLink{display:inline-block;text-align:center;padding:11px 12px;border-radius:12px;font-weight:900}
     button:disabled{opacity:.4;cursor:not-allowed}
     .small{font-size:12px;color:var(--muted)}
     .danger{color:var(--danger)}
@@ -80,8 +77,10 @@
         <h2 class="panelTitle">⚙️ 설정</h2>
         <label>학생 데이터 엑셀(.xlsx)</label>
         <input id="fileInput" type="file" accept=".xlsx" />
-        <div class="btnRow" style="margin-top:10px">
-          <a href="#" class="btnLink btnSecondary" id="templateDownload">샘플 양식 다운로드</a>
+        <div style="margin-top:10px">
+          <a href="template.xlsx" download="반배정_양식_샘플(토글적용).xlsx" style="display:block;text-decoration:none">
+            <button type="button" class="btnSecondary">샘플 양식 다운로드</button>
+          </a>
         </div>
         <div class="small" style="margin-top:8px">* 처음 사용하시면 위 양식을 내려받아 <b>열 이름/형식</b>을 그대로 유지해 주세요.</div>
         <div class="divider"></div>
@@ -139,7 +138,7 @@
 
         <div class="divider"></div>
 
-        <button id="runBtn" disabled>반배정 실행 → 결과 보기</button>
+        <button id="runBtn" disabled>반배정 실행 → 결과 탭 보기</button>
         <div class="small" style="margin-top:10px">
           TIP: 결과가 마음에 안 들면 <b>시드</b>를 바꾸거나 <b>시뮬레이션 횟수</b>를 늘려보세요.
         </div>
