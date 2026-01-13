@@ -3,7 +3,7 @@
 // - 결과 탭 테이블/요약 렌더링 버그 수정
 // - 함수/변수 중복 선언(Identifier already declared) 오류 수정
 
-console.log('class-assign webapp v3.3.1 loaded');
+console.log('class-assign webapp v3.3.2 loaded');
 
 // 앱 전체를 IIFE로 감싸 전역변수/함수 충돌을 줄입니다.
 (()=>{
@@ -288,8 +288,8 @@ console.log('class-assign webapp v3.3.1 loaded');
     const special = ynTo01(r["특수여부"]||r["특수"]||r["특수여부(Y/N)"]);
     const adhd = ynTo01(r["ADHD여부"]||r["adhd여부"]||r["ADHD"]||r["ADHD여부(Y/N)"]);
     const note = safeString(r["비고"]||r["특이사항"]||r["메모"]);
-        const sepCodes = splitCodes(r["분리요청학생"]||r["분리요청코드"]||r["분리코드"]||r["분리"]);
-        const careCodes = splitCodes(r["배려요청학생"]||r["배려요청코드"]||r["배려코드"]||r["배려"]);
+        const sepCodes = splitCodes(r["분리요청학생"]||r["분리요청학생"]||r["분리코드"]||r["분리"]);
+        const careCodes = splitCodes(r["배려요청학생"]||r["배려요청학생"]||r["배려코드"]||r["배려"]);
         return {
       _raw: {...r},
       name, gender, birth,
@@ -412,6 +412,39 @@ console.log('class-assign webapp v3.3.1 loaded');
     score += weights.carePenalty * careMiss;
 
     return {score, sepViol, careMiss, cnt, male, female, spec, adhd, acadSum, peerSum, parentSum};
+
+  // 분리/배려 '쌍' 수치가 너무 크게 느껴질 수 있어, 실제로 영향을 받은 '학생 수'도 계산합니다.
+  function computeViolationStudentCounts(rows, assign, groups){
+    const sepSet = new Set();
+    const careSet = new Set();
+
+    // 분리: 같은 반에 2명 이상 몰린 경우, 그 반에 속한 학생들을 위반 학생으로 집계
+    for (const [, idxs] of groups.sep.entries()){
+      const perClass = new Map();
+      for (const i of idxs){
+        const c = assign[i];
+        if (!perClass.has(c)) perClass.set(c, []);
+        perClass.get(c).push(i);
+      }
+      for (const arr of perClass.values()){
+        if (arr.length >= 2){
+          for (const i of arr) sepSet.add(i);
+        }
+      }
+    }
+
+    // 배려: 같은 그룹이 2개 이상 반으로 쪼개진 경우, 해당 그룹 구성원 전체를 미충족 학생으로 집계
+    for (const [, idxs] of groups.care.entries()){
+      const classes = new Set();
+      for (const i of idxs) classes.add(assign[i]);
+      if (classes.size >= 2){
+        for (const i of idxs) careSet.add(i);
+      }
+    }
+
+    return { sepStudents: sepSet.size, careStudents: careSet.size };
+  }
+
   }
 
   function initialAssignment(rows, classCount, rng){
@@ -483,10 +516,11 @@ console.log('class-assign webapp v3.3.1 loaded');
       if (strength === 'medium') return 50000;
       return 15000;
     }
-    // care
-    if (strength === 'strong') return 5000;
-    if (strength === 'medium') return 2000;
-    return 700;
+    // care (같은 반 선호): 기존보다 강도를 더 크게 반영
+    if (strength === 'strict') return 50000;   // 가능한 한 같은 반
+    if (strength === 'strong') return 20000;
+    if (strength === 'medium') return 8000;
+    return 2000;
   }
 
   function validateRows(rows){
@@ -580,23 +614,35 @@ console.log('class-assign webapp v3.3.1 loaded');
     const {best, bestAssign} = await optimize(studentRows, classCount, iterations, seed, weights, groups);
     const elapsedMs = Math.round(performance.now() - start);
 
-    const resultRows = studentRows.map((r,i)=>( {
-      반: bestAssign[i] + 1,
-      학생명: r.name,
-      성별: r.gender,
-      학업성취: r.acad,
-      교우관계: r.peer,
-      학부모민원: r.parent,
-      특수여부: r.special ? "Y" : "N",
-      ADHD여부: r.adhd ? "Y" : "N",
-      분리요청코드: r.sepCodes.join(","),
-      배려요청코드: r.careCodes.join(","),
-      비고: r.note
-    }));
+    const violCount = computeViolationStudentCounts(studentRows, bestAssign, groups);
+
+    // 결과 다운로드는 '업로드 양식의 열'을 최대한 유지하고, 표준 열은 값이 확실히 채워지도록 보정합니다.
+    const resultRows = studentRows.map((r,i)=>{
+      const base = Object.assign({}, rawRows[i] || {});
+      base["반"] = bestAssign[i] + 1;
+
+      // 표준 열 보정(업로드 파일의 표기와 무관하게 결과가 안정적으로 나오도록)
+      base["학생명"] = r.name;
+      base["성별"] = r.gender;
+      if (r.birth) base["생년월일"] = r.birth;
+      base["학업성취"] = r.acad;
+      base["교우관계"] = r.peer;
+      base["학부모민원"] = r.parent;
+      base["특수여부"] = r.special ? "Y" : "N";
+      base["ADHD여부"] = r.adhd ? "Y" : "N";
+      base["비고"] = r.note;
+
+      // 분리/배려는 '학생' 표기로 통일하여 하나의 열만 남깁니다.
+      base["분리요청학생"] = r.sepCodes.join(",");
+      base["배려요청학생"] = r.careCodes.join(",");
+      delete base["분리요청코드"];
+      delete base["배려요청코드"];
+      return base;
+    });
 
     const payload = {
       meta: { total: studentRows.length, classCount, iterations, seed, elapsedMs, weights, sepStrength: sepStrengthEl.value, careStrength: careStrengthEl.value },
-      best: { score: best.score, sepViol: best.sepViol, careMiss: best.careMiss },
+      best: { score: best.score, sepPairs: best.sepViol, carePairs: best.careMiss, sepStudents: violCount.sepStudents, careStudents: violCount.careStudents },
       arrays: { cnt: best.cnt, male: best.male, female: best.female, spec: best.spec, adhd: best.adhd },
       resultRows
     };
@@ -623,8 +669,8 @@ console.log('class-assign webapp v3.3.1 loaded');
   function renderResult(payload){
     metaPill.textContent = `${payload.meta.total}명 · ${payload.meta.classCount}반 · ${payload.meta.iterations.toLocaleString()}회 · seed ${payload.meta.seed} · ${payload.meta.elapsedMs.toLocaleString()}ms`;
     scorePill.textContent = `Score: ${Math.round(payload.best.score).toLocaleString()}`;
-    sepPill.textContent = `분리 위반: ${payload.best.sepViol.toLocaleString()}쌍`;
-    carePill.textContent = `배려 미충족: ${payload.best.careMiss.toLocaleString()}쌍`;
+    sepPill.textContent = `분리 미충족: ${payload.best.sepStudents.toLocaleString()}명 (위반 ${payload.best.sepPairs.toLocaleString()}쌍)`;
+    carePill.textContent = `배려 미충족: ${payload.best.careStudents.toLocaleString()}명 (미충족 ${payload.best.carePairs.toLocaleString()}쌍)`;
 
     function renderClassSummary(){
       const C = payload.meta.classCount;
@@ -651,8 +697,8 @@ console.log('class-assign webapp v3.3.1 loaded');
 
       for (const r of rows){
         const cls = r["반"];
-        const sepCodes = (r["분리요청코드"]||"").split(/[,\s;]+/).map(t=>t.trim()).filter(Boolean);
-        const careCodes = (r["배려요청코드"]||"").split(/[,\s;]+/).map(t=>t.trim()).filter(Boolean);
+        const sepCodes = (r["분리요청학생"]||"").split(/[,\s;]+/).map(t=>t.trim()).filter(Boolean);
+        const careCodes = (r["배려요청학생"]||"").split(/[,\s;]+/).map(t=>t.trim()).filter(Boolean);
         for (const c of sepCodes) add(sepMap, c, cls);
         for (const c of careCodes) add(careMap, c, cls);
       }
@@ -821,8 +867,10 @@ console.log('class-assign webapp v3.3.1 loaded');
         ["민원 가중치", payload.meta.weights.wParent],
         ["분리강도", payload.meta.sepStrength],
         ["배려강도", payload.meta.careStrength],
-        ["분리 위반(쌍)", payload.best.sepViol],
-        ["배려 미충족(쌍)", payload.best.careMiss],
+        ["분리 미충족(명)", payload.best.sepStudents],
+        ["배려 미충족(명)", payload.best.careStudents],
+        ["분리 위반(쌍)", payload.best.sepPairs],
+        ["배려 미충족(쌍)", payload.best.carePairs],
         ["Score", payload.best.score]
       ]);
       XLSX.utils.book_append_sheet(wb, metaSheet, "설정요약");
