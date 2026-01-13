@@ -977,16 +977,7 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
       }
 
       // ----- helper: 3단계(좋음/보통/나쁨) 반별 요약 -----
-          function wrapAsToggle(title, innerHtml, open=false){
-      return `
-        <details class="toggle-block" ${open ? "open" : ""}>
-          <summary class="toggle-summary">${title}</summary>
-          <div class="toggle-body">${innerHtml}</div>
-        </details>
-      `;
-    }
-
-function buildLevelReport(title, field){
+      function buildLevelReport(title, field){
         const C = payload.meta.classCount;
         const buckets = Array.from({length:C}, ()=>({good:0, normal:0, bad:0, total:0}));
         for (const r of rows){
@@ -1065,12 +1056,9 @@ function buildLevelReport(title, field){
       }
 
       // ----- 추가 리포트: 학부모민원/학업성취/교우관계 -----
-      const _rep1 = buildLevelReport("학부모민원", "학부모민원");
-      const _rep2 = buildLevelReport("학업성취", "학업성취");
-      const _rep3 = buildLevelReport("교우관계", "교우관계");
-      html += wrapAsToggle("📌 학부모민원 요약 보기", _rep1, false);
-      html += wrapAsToggle("📘 학업성취 요약 보기", _rep2, false);
-      html += wrapAsToggle("🤝 교우관계 요약 보기", _rep3, false);
+      html += buildLevelReport("학부모민원", "학부모민원");
+      html += buildLevelReport("학업성취", "학업성취");
+      html += buildLevelReport("교우관계", "교우관계");
 
       violationsDiv.innerHTML = html;
     }
