@@ -196,6 +196,15 @@ console.log('class-assign webapp v3.2.9 loaded');
     if (msg) progressTxt.textContent = msg;
   }
 
+  // Run button state helper (DOM 속성/프로퍼티 불일치로 버튼이 계속 비활성처럼 보이는 문제 방지)
+  function setRunEnabled(enabled){
+    if (!runBtn) return;
+    runBtn.disabled = !enabled;
+    // disabled 속성은 HTML에 남아있으면 브라우저에 따라 UI가 계속 비활성처럼 보일 수 있어 명시적으로 정리
+    if (enabled) runBtn.removeAttribute("disabled");
+    else runBtn.setAttribute("disabled", "");
+  }
+
   function safeString(x){ return (x===null||x===undefined) ? "" : String(x).trim(); }
   function ynTo01(x){
     const v = safeString(x).toUpperCase();
@@ -492,7 +501,7 @@ console.log('class-assign webapp v3.2.9 loaded');
     const file = e.target.files?.[0];
     if (!file){
       filePill.textContent = "엑셀 미선택";
-      runBtn.disabled = true;
+      setRunEnabled(false);
       return;
     }
     filePill.textContent = `선택됨: ${file.name}`;
@@ -509,7 +518,7 @@ console.log('class-assign webapp v3.2.9 loaded');
       rawRows = parsed.rows;
       if (!rawRows || rawRows.length === 0){
         setErrors("엑셀에서 데이터를 읽지 못했어요. '학생명/성별' 헤더가 있는 시트와 표(헤더 행)를 확인해주세요.");
-        runBtn.disabled = true;
+        setRunEnabled(false);
         return;
       }
 
@@ -523,7 +532,7 @@ console.log('class-assign webapp v3.2.9 loaded');
       const err = validateRows(studentRows);
       if (err){
         setErrors(err);
-        runBtn.disabled = true;
+        setRunEnabled(false);
         return;
       }
 
@@ -531,11 +540,11 @@ console.log('class-assign webapp v3.2.9 loaded');
       renderSetupPreviewTable(rawRows, 20);
       summarize(studentRows);
       statusPill.textContent = missingStd.length ? `엑셀 로드됨(권장열 누락: ${missingStd.join(', ')})` : "엑셀 로드됨";
-      runBtn.disabled = !(studentRows && studentRows.length>0);
+      setRunEnabled(!!(studentRows && studentRows.length>0));
     } catch(err){
       console.error(err);
       setErrors("엑셀을 읽는 중 오류: " + (err?.message || String(err)));
-      runBtn.disabled = true;
+      setRunEnabled(false);
     } finally{
       showOverlay(false);
     }
