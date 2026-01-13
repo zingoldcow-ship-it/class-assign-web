@@ -1004,9 +1004,9 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
         const range = (max.score - min.score);
 
         let out = "";
-        out += `<div style="height:12px"></div><div class="small"><b>${escapeHtml(title)}(반별 요약)</b></div>`;
+        out += `<div class="small"><b>${escapeHtml(title)}(반별 요약)</b></div>`;
         out += `<div class="small">- 평균점수 범위: ${range.toFixed(2)} (최고: ${max.cls}반 ${max.score.toFixed(2)}, 최저: ${min.cls}반 ${min.score.toFixed(2)})</div>`;
-        out += "<div style='overflow:auto;max-height:160px;'><table><thead><tr><th>구분</th><th>반</th><th>평균점수</th><th>좋음</th><th>보통</th><th>나쁨</th></tr></thead><tbody>";
+        out += "<div style='overflow:auto;max-height:200px;'><table><thead><tr><th>구분</th><th>반</th><th>평균점수</th><th>좋음</th><th>보통</th><th>나쁨</th></tr></thead><tbody>";
         for (const x of top){ out += `<tr><td>상위</td><td>${x.cls}</td><td>${x.score.toFixed(2)}</td><td>${x.good}</td><td>${x.normal}</td><td>${x.bad}</td></tr>`; }
         for (const x of bottom){ out += `<tr><td>하위</td><td>${x.cls}</td><td>${x.score.toFixed(2)}</td><td>${x.good}</td><td>${x.normal}</td><td>${x.bad}</td></tr>`; }
         out += "</tbody></table></div>";
@@ -1055,12 +1055,44 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
         html += "</tbody></table></div>";
       }
 
-      // ----- 추가 리포트: 학부모민원/학업성취/교우관계 -----
-      html += buildLevelReport("학부모민원", "학부모민원");
-      html += buildLevelReport("학업성취", "학업성취");
-      html += buildLevelReport("교우관계", "교우관계");
+      // ----- 추가 리포트: 학부모민원/학업성취/교우관계 (토글 탭) -----
+      html += `<div style="height:14px"></div>`;
+      html += `<div class="small"><b>3단계 요약(토글)</b></div>`;
+      html += `
+        <div class="tabs" style="margin-top:10px" id="levelTabs">
+          <button type="button" class="tabBtn active" data-target="parent">학부모민원</button>
+          <button type="button" class="tabBtn" data-target="acad">학업성취</button>
+          <button type="button" class="tabBtn" data-target="peer">교우관계</button>
+        </div>
+        <div style="height:10px"></div>
+        <div id="levelSection-parent" class="levelSection">${buildLevelReport("학부모민원", "학부모민원")}</div>
+        <div id="levelSection-acad" class="levelSection" style="display:none">${buildLevelReport("학업성취", "학업성취")}</div>
+        <div id="levelSection-peer" class="levelSection" style="display:none">${buildLevelReport("교우관계", "교우관계")}</div>
+      `;
 
       violationsDiv.innerHTML = html;
+
+      // 탭 클릭 이벤트(동적 생성된 DOM에 바인딩)
+      try{
+        const tabWrap = violationsDiv.querySelector('#levelTabs');
+        if(tabWrap){
+          const btns = Array.from(tabWrap.querySelectorAll('button.tabBtn'));
+          const sections = {
+            parent: violationsDiv.querySelector('#levelSection-parent'),
+            acad: violationsDiv.querySelector('#levelSection-acad'),
+            peer: violationsDiv.querySelector('#levelSection-peer')
+          };
+          btns.forEach(btn=>{
+            btn.addEventListener('click', ()=>{
+              const key = btn.getAttribute('data-target');
+              btns.forEach(b=>b.classList.toggle('active', b===btn));
+              Object.keys(sections).forEach(k=>{
+                if(sections[k]) sections[k].style.display = (k===key) ? '' : 'none';
+              });
+            });
+          });
+        }
+      }catch(e){ console.warn('level tabs init failed', e); }
     }
 
     function renderResultTable(filterClass){
