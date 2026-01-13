@@ -40,6 +40,17 @@ console.log('class-assign webapp v3.4.2 loaded');
       .trim();
   }
 
+  function escapeHtml(s){
+    return String(s ?? "").replace(/[&<>"']/g, (ch)=>({
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      '"':"&quot;",
+      "'":"&#39;"
+    }[ch]));
+  }
+
+
   // 입력 헤더(정규화) -> 표준 헤더로 매핑
   const HEADER_ALIASES = {
     "학생명": ["학생명","이름","성명","학생이름","학생명칭"],
@@ -1003,6 +1014,31 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
       }
 
       let html = "";
+
+      // ----- 요약(핵심 지표) -----
+      const clsCnt = payload?.meta?.classCount || 0;
+      const {cnt, male, female, spec, adhd} = payload.arrays || {};
+      function maxDev(arr){
+        if(!arr || arr.length===0) return 0;
+        const avg = arr.reduce((a,b)=>a+b,0)/arr.length;
+        return Math.max(...arr.map(v=>Math.abs(v-avg)));
+      }
+      const genderDev = (male&&female) ? Math.max(maxDev(male), maxDev(female)) : 0;
+      const specDev = maxDev(spec||[]);
+      const adhdDev = maxDev(adhd||[]);
+      html += `<div class="small"><b>요약</b></div>`;
+      html += `<div class="small">- 성비(남/여) 반별 편차(평균 대비): 최대 ${genderDev.toFixed(1)}명</div>`;
+      html += `<div class="small">- 특수 반별 편차(평균 대비): 최대 ${specDev.toFixed(1)}명</div>`;
+      html += `<div class="small">- ADHD 반별 편차(평균 대비): 최대 ${adhdDev.toFixed(1)}명</div>`;
+      if(payload?.meta?.adhdCap && payload.meta.adhdCap !== "auto"){
+        // 상한 초과 반 수
+        const cap = Number(payload.meta.adhdCap);
+        if(!Number.isNaN(cap) && (adhd||[]).length){
+          const over = (adhd||[]).filter(v=>v>cap).length;
+          html += `<div class="small">- ADHD 반당 최대 ${cap}명 제한: 초과 반 ${over}개</div>`;
+        }
+      }
+      html += `<div style="height:10px"></div>`;
       html += `<div class="small"><b>분리 위반(상위 10)</b></div>`;
       if (worstSep.length === 0) html += `<div class="small">- 위반 없음</div>`;
       else {
@@ -1063,7 +1099,13 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
     }
 
     function setupFilter(){
+      if(!classFilter) return;
       classFilter.innerHTML = "";
+      // classCount가 비정상(0/undefined)일 경우 결과행에서 최대 반 번호로 보정
+      let classCount = payload?.meta?.classCount;
+      if(!classCount || classCount<1){
+        classCount = Math.max(0, ...(payload.resultRows||[]).map(r=>Number(r["반"]||r["새반"]||0))) || 0;
+      }
       const optAll = document.createElement("option");
       optAll.value = "all";
       optAll.textContent = "전체";
@@ -1081,10 +1123,22 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
     }
 
     function drawCharts(){
+      const cntWrap = document.getElementById("cntChart")?.parentElement;
+      const gWrap = document.getElementById("genderChart")?.parentElement;
+      function showChartMsg(wrap,msg){
+        if(!wrap) return;
+        // canvas는 유지하되 안내문 추가
+        let note = wrap.querySelector(".chartNote");
+        if(!note){ note=document.createElement("div"); note.className="chartNote small"; note.style.marginTop="8px"; wrap.appendChild(note); }
+        note.textContent = msg;
+      }
       if (typeof Chart === "undefined"){
         console.warn("Chart.js not loaded");
+        showChartMsg(cntWrap, "그래프 라이브러리(Chart.js)가 로드되지 않아 그래프를 표시할 수 없습니다.");
+        showChartMsg(gWrap, "그래프 라이브러리(Chart.js)가 로드되지 않아 그래프를 표시할 수 없습니다.");
         return;
       }
+      try{
       Chart.defaults.responsive = false;
       Chart.defaults.animation = false;
 
@@ -1112,6 +1166,16 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
         ]},
         options:{ responsive:false, animation:false, plugins:{ legend:{ position:"bottom" }}, scales:{ x:{ stacked:true }, y:{ stacked:true, beginAtZero:true } } }
       });
+
+      }catch(err){
+        console.error(err);
+        const msg = (err && err.message) ? err.message : String(err);
+        const cntWrap = document.getElementById('cntChart')?.parentElement;
+        const gWrap = document.getElementById('genderChart')?.parentElement;
+        const show=(wrap,m)=>{ if(!wrap) return; let note=wrap.querySelector('.chartNote'); if(!note){ note=document.createElement('div'); note.className='chartNote small'; note.style.marginTop='8px'; wrap.appendChild(note);} note.textContent=m; };
+        show(cntWrap, '그래프 생성 중 오류: '+msg);
+        show(gWrap, '그래프 생성 중 오류: '+msg);
+      }
     }
 
     // 렌더 실행 순서
@@ -1169,7 +1233,12 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
     };
 
     renderClassSummary();
-    buildViolationReport();
+    try{ buildViolationReport(); }catch(err){
+      console.error(err);
+      const e=document.getElementById("errors");
+      if(e) e.textContent = "리포트 생성 중 오류: " + ((err&&err.message)?err.message:String(err));
+      if(violationsDiv) violationsDiv.textContent = "리포트를 생성하지 못했습니다.";
+    }
     setupFilter();
     renderResultTable("all");
     drawCharts();
