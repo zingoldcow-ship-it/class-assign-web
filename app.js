@@ -3,7 +3,7 @@
 // - 결과 탭 테이블/요약 렌더링 버그 수정
 // - 함수/변수 중복 선언(Identifier already declared) 오류 수정
 
-console.log('class-assign webapp v3.2.9 loaded');
+console.log('class-assign webapp v3.3.1 loaded');
 
 // 앱 전체를 IIFE로 감싸 전역변수/함수 충돌을 줄입니다.
 (()=>{
@@ -30,7 +30,7 @@ console.log('class-assign webapp v3.2.9 loaded');
   });
 
   // ----- Column policy -----
-  const REQUIRED_COLUMNS = ['학생명','성별','학업성취','교우관계','학부모민원','특수여부','ADHD여부','분리요청코드','배려요청코드','비고'];
+  const REQUIRED_COLUMNS = ['학생명','성별','생년월일','학업성취','교우관계','학부모민원','특수여부','ADHD여부','분리요청학생','배려요청학생','비고'];
 
   // ===== v3.2: Header normalization (공백/유사명 자동 인식) =====
   function normHeader(h){
@@ -49,8 +49,9 @@ console.log('class-assign webapp v3.2.9 loaded');
     "학부모민원": ["학부모민원","민원","학부모","학부모요청","학부모민원(3단계)"],
     "특수여부": ["특수여부","특수","특수학급","특수대상","특수교육대상","특수유무"],
     "ADHD여부": ["ADHD여부","ADHD","adhd여부","주의력결핍","주의력","ADHD유무"],
-    "분리요청코드": ["분리요청코드","분리코드","분리요청","분리","분리요청 코드"],
-    "배려요청코드": ["배려요청코드","배려코드","배려요청","배려","배려요청 코드"],
+    "생년월일": ["생년월일","생년","생일","출생일","출생","생년월일(yyyy-mm-dd)","생년월일(YYYY-MM-DD)"],
+    "분리요청학생": ["분리요청학생","분리요청코드","분리코드","분리요청","분리","분리요청 코드"],
+    "배려요청학생": ["배려요청학생","배려요청코드","배려코드","배려요청","배려","배려요청 코드"],
     "비고": ["비고","특이사항","메모","참고","기타","비고(특이사항)"]
   };
 
@@ -182,6 +183,7 @@ console.log('class-assign webapp v3.2.9 loaded');
 
   let rawRows = null;
   let studentRows = null;
+  let lastHeaders = null; // 업로드 엑셀의 열 순서 기억(결과 다운로드에 반영)
 
   function syncWeights(){
     wAcadV.textContent = wAcad.value;
@@ -279,16 +281,18 @@ console.log('class-assign webapp v3.2.9 loaded');
   function normalizeRow(r){
     const name = safeString(r["학생명"]||r["이름"]||r["성명"]);
     const gender = safeString(r["성별"]||r["남녀"]);
+    const birth = safeString(r["생년월일"]||r["생년"]||r["생일"]||r["출생일"]);
     const acad = safeString(r["학업성취"]||r["학업성취(3단계)"]);
     const peer = safeString(r["교우관계"]||r["교우관계(3단계)"]);
     const parent = safeString(r["학부모민원"]||r["학부모민원(3단계)"]);
     const special = ynTo01(r["특수여부"]||r["특수"]||r["특수여부(Y/N)"]);
     const adhd = ynTo01(r["ADHD여부"]||r["adhd여부"]||r["ADHD"]||r["ADHD여부(Y/N)"]);
     const note = safeString(r["비고"]||r["특이사항"]||r["메모"]);
-    const sepCodes = splitCodes(r["분리요청코드"]||r["분리코드"]||r["분리"]);
-    const careCodes = splitCodes(r["배려요청코드"]||r["배려코드"]||r["배려"]);
-    return {
-      name, gender,
+        const sepCodes = splitCodes(r["분리요청학생"]||r["분리요청코드"]||r["분리코드"]||r["분리"]);
+        const careCodes = splitCodes(r["배려요청학생"]||r["배려요청코드"]||r["배려코드"]||r["배려"]);
+        return {
+      _raw: {...r},
+      name, gender, birth,
       acad, peer, parent,
       acadS: level3ToScore(acad),
       peerS: level3ToScore(peer),
@@ -524,6 +528,7 @@ console.log('class-assign webapp v3.2.9 loaded');
 
       // (선택) 헤더 매핑 점검 - 현재는 normalizeRow가 유연하게 읽음
       const headers = Object.keys(rawRows[0] || {});
+      lastHeaders = headers.slice();
       const headerMap = buildHeaderMap(headers);
       const missingStd = REQUIRED_COLUMNS.filter(c=> !headerMap[c] && !headers.some(h=>normHeader(h)===normHeader(c)));
       // 학생명/성별은 validateRows로 다시 확인
@@ -783,7 +788,25 @@ console.log('class-assign webapp v3.2.9 loaded');
       );
 
       const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.json_to_sheet(sorted);
+      // 업로드한 양식의 열 순서를 최대한 유지하고, 분리/배려 열은 '학생' 표기로 통일
+      const baseHeaders = (lastHeaders && lastHeaders.length) ? lastHeaders : Object.keys(sorted[0] || {});
+      const mappedHeaders = baseHeaders.map(h=>{
+        const nh = normHeader(h);
+        if (nh === normHeader("분리요청코드") || nh === normHeader("분리요청학생")) return "분리요청학생";
+        if (nh === normHeader("배려요청코드") || nh === normHeader("배려요청학생")) return "배려요청학생";
+        return h;
+      });
+      // 중복 제거(순서 유지)
+      const seen = new Set();
+      const ordered = [];
+      for (const h of mappedHeaders){
+        if (!h) continue;
+        if (!seen.has(h)){ seen.add(h); ordered.push(h); }
+      }
+      // '반'은 항상 맨 앞에
+      const headerOrder = ["반", ...ordered.filter(h=>h!=="반")];
+
+      const ws = XLSX.utils.json_to_sheet(sorted, { header: headerOrder });
       XLSX.utils.book_append_sheet(wb, ws, "반배정결과");
 
       const metaSheet = XLSX.utils.aoa_to_sheet([
