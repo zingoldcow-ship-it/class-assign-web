@@ -605,7 +605,9 @@ console.log('class-assign webapp v3.3.2 loaded');
       carePenalty: strengthToPenalty(careStrengthEl.value, 'care')
     };
 
-    showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
+    let payload = null;
+    try{
+showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
     await new Promise(r=>setTimeout(r, 10));
     const groups = buildCodeGroups(studentRows);
 
@@ -652,6 +654,9 @@ console.log('class-assign webapp v3.3.2 loaded');
     statusPill.textContent = "완료";
     try{ renderResult(payload); }catch(e){ console.error(e); setErrors("결과 렌더링 오류: " + (e?.message || e)); }
     showTab("result");
+    }catch(e){ console.error(e); setErrors("실행 중 오류: " + (e?.message || e)); }
+    finally{ showOverlay(false); }
+
   });
 
   // ===== Result Tab Rendering =====
