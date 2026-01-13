@@ -210,8 +210,8 @@ console.log('class-assign webapp v3.2.5 loaded');
         <span class="pill">남 ${male} · 여 ${female}</span>
         <span class="pill">특수 ${specN}</span>
         <span class="pill">ADHD ${adhdN}</span>
-        <span class="pill">분리코드 ${rows.reduce((a,r)=>a+(r.sepCodes.length>0),0)}명</span>
-        <span class="pill">배려코드 ${rows.reduce((a,r)=>a+(r.careCodes.length>0),0)}명</span>
+        <span class="pill">분리학생 ${rows.reduce((a,r)=>a+(r.sepCodes.length>0),0)}명</span>
+        <span class="pill">배려학생 ${rows.reduce((a,r)=>a+(r.careCodes.length>0),0)}명</span>
       </div>
       <div style="height:10px"></div>
       <div class="small">* 실행을 누르면 결과는 같은 화면의 “결과” 탭에서 표시됩니다.</div>
@@ -529,6 +529,12 @@ console.log('class-assign webapp v3.2.5 loaded');
       배려요청코드: r.careCodes.join(","),
       비고: r.note
     }));
+
+    // 다운로드/공유용 결과는 "새로운 반" 기준으로 1반 → 2반 ... 순서로 정렬
+    resultRows.sort((a,b)=> (a.반 - b.반) || String(a.학생명).localeCompare(String(b.학생명), 'ko'));
+
+    // 다운로드/표시용: 새 반(1반→) 기준으로 정렬
+    resultRows.sort((a,b)=> (a["반"]-b["반"]) || String(a["학생명"]).localeCompare(String(b["학생명"])) );
 
     const payload = {
       meta: { total: studentRows.length, classCount, iterations, seed, elapsedMs, weights, sepStrength: sepStrengthEl.value, careStrength: careStrengthEl.value },
