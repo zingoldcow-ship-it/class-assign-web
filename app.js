@@ -58,6 +58,8 @@ console.log('class-assign webapp v3.4.2 loaded');
     "학업성취": ["학업성취","학업성취도","성취","학업","성취도","학업수준","학업성취(3단계)"],
     "교우관계": ["교우관계","교우","대인관계","친구관계","교우관계(3단계)"],
     "학부모민원": ["학부모민원","민원","학부모","학부모요청","학부모민원(3단계)"],
+    // 다문화(선택 컬럼)
+    "다문화여부": ["다문화여부","다문화","다문화학생","다문화여부(Y/N)"],
     "특수여부": ["특수여부","특수","특수학급","특수대상","특수교육대상","특수유무"],
     "ADHD여부": ["ADHD여부","ADHD","adhd여부","주의력결핍","주의력","ADHD유무"],
     "생년월일": ["생년월일","생년","생일","출생일","출생","생년월일(yyyy-mm-dd)","생년월일(YYYY-MM-DD)"],
@@ -1251,6 +1253,8 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
         const nh = normHeader(h);
         if (nh === normHeader("분리요청코드") || nh === normHeader("분리요청학생")) return "분리요청학생";
         if (nh === normHeader("배려요청코드") || nh === normHeader("배려요청학생")) return "배려요청학생";
+        // 다문화 컬럼은 표준 이름으로 통일
+        if (nh === normHeader("다문화") || nh === normHeader("다문화학생") || nh === normHeader("다문화여부(Y/N)")) return "다문화여부";
         return h;
       });
       // 중복 제거(순서 유지)
@@ -1261,7 +1265,21 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
         if (!seen.has(h)){ seen.add(h); ordered.push(h); }
       }
       // '반'은 항상 맨 앞에
-      const headerOrder = ["반", ...ordered.filter(h=>h!=="반")];
+      // 다문화여부는 항상 '학부모민원' 바로 뒤로 위치시키고(없으면 유지), 누락 시에도 결과에 포함
+      const orderedNoBan = ordered.filter(h=>h!=="반");
+
+      // 결과 행에 다문화 값이 있으면 헤더에 반드시 포함
+      const hasMultiKey = sorted.some(r=>Object.prototype.hasOwnProperty.call(r, "다문화여부"));
+      if (hasMultiKey && !orderedNoBan.includes("다문화여부")) orderedNoBan.push("다문화여부");
+
+      // 위치 재배치: 학부모민원 다음
+      const idxMulti = orderedNoBan.indexOf("다문화여부");
+      if (idxMulti >= 0) orderedNoBan.splice(idxMulti, 1);
+      const idxParent = orderedNoBan.indexOf("학부모민원");
+      if (idxParent >= 0) orderedNoBan.splice(idxParent+1, 0, "다문화여부");
+      else orderedNoBan.push("다문화여부");
+
+      const headerOrder = ["반", ...orderedNoBan];
 
       const ws = XLSX.utils.json_to_sheet(sorted, { header: headerOrder });
       XLSX.utils.book_append_sheet(wb, ws, "반배정결과");
