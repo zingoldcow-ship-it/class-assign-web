@@ -106,7 +106,8 @@ option{background:#0b1220;color:#e5e7eb}
 
         <div class="divider"></div>
 
-        <label>3. 랜덤 시드(같은 값이면 같은 결과)</label>
+        <label>3. 배정 기준값
+<span class='desc'>(같은 기준값을 쓰면 결과가 그대로 유지됩니다.)</span></label>
         <input id="seed" type="number" min="0" max="999999" value="42" />
 
         <div class="divider"></div>
@@ -332,7 +333,7 @@ option{background:#0b1220;color:#e5e7eb}
       if(inp){
         inp.addEventListener('change', function(){
           if(fp) fp.textContent = inp.files && inp.files[0] ? inp.files[0].name : '엑셀 미선택';
-          setStatus('파일 선택됨');
+          setStatus('파일 업로드됨');
         });
       }
       // CDN 로드 체크(5초 후)
