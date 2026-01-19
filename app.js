@@ -166,12 +166,15 @@ console.log('class-assign webapp v3.4.2 loaded');
   const wAcad = document.getElementById("wAcad");
   const wPeer = document.getElementById("wPeer");
   const wParent = document.getElementById("wParent");
+  const wMulti = document.getElementById("wMulti");
   const wAcadV = document.getElementById("wAcadV");
   const wPeerV = document.getElementById("wPeerV");
   const wParentV = document.getElementById("wParentV");
+  const wMultiV = document.getElementById("wMultiV");
   const sepStrengthEl = document.getElementById("sepStrength");
   const careStrengthEl = document.getElementById("careStrength");
   const adhdCapEl = document.getElementById("adhdCap");
+  const multiModeEl = document.getElementById("multiMode");
   const runBtn = document.getElementById("runBtn");
   const overlay = document.getElementById("overlay");
 
@@ -201,8 +204,9 @@ console.log('class-assign webapp v3.4.2 loaded');
     wAcadV.textContent = wAcad.value;
     wPeerV.textContent = wPeer.value;
     wParentV.textContent = wParent.value;
+    if (wMultiV && wMulti) wMultiV.textContent = wMulti.value;
   }
-  [wAcad,wPeer,wParent].forEach(el=>el.addEventListener("input", syncWeights));
+  [wAcad,wPeer,wParent,wMulti].filter(Boolean).forEach(el=>el.addEventListener("input", syncWeights));
   syncWeights();
 
   function showOverlay(on, msg){
@@ -305,12 +309,14 @@ console.log('class-assign webapp v3.4.2 loaded');
     const female = gender.filter(g=>g==="여").length;
     const specN = rows.reduce((a,r)=>a+r.special,0);
     const adhdN = rows.reduce((a,r)=>a+r.adhd,0);
+    const multiN = rows.reduce((a,r)=>a+(r.multi||0),0);
     statsDiv.innerHTML = `
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
         <span class="pill ok">총 ${n}명</span>
         <span class="pill">남 ${male} · 여 ${female}</span>
         <span class="pill">특수 ${specN}</span>
         <span class="pill">ADHD ${adhdN}</span>
+        <span class="pill">다문화 ${multiN}</span>
         <span class="pill">분리학생 ${rows.reduce((a,r)=>a+(r.sepCodes.length>0),0)}명</span>
         <span class="pill">배려학생 ${rows.reduce((a,r)=>a+(r.careCodes.length>0),0)}명</span>
       </div>
@@ -328,6 +334,7 @@ console.log('class-assign webapp v3.4.2 loaded');
     const parent = safeString(r["학부모민원"]||r["학부모민원(3단계)"]);
     const special = ynTo01(r["특수여부"]||r["특수"]||r["특수여부(Y/N)"]);
     const adhd = ynTo01(r["ADHD여부"]||r["adhd여부"]||r["ADHD"]||r["ADHD여부(Y/N)"]);
+    const multi = ynTo01(r["다문화여부"]||r["다문화"]||r["다문화학생"]||r["다문화여부(Y/N)"]);
     const note = safeString(r["비고"]||r["특이사항"]||r["메모"]);
         const sepCodes = splitCodes(r["분리요청학생"]||r["분리요청학생"]||r["분리코드"]||r["분리"]);
         const careCodes = splitCodes(r["배려요청학생"]||r["배려요청학생"]||r["배려코드"]||r["배려"]);
@@ -338,7 +345,7 @@ console.log('class-assign webapp v3.4.2 loaded');
       acadS: level3ToScore(acad),
       peerS: level3ToScore(peer),
       parentS: level3ToScore(parent),
-      special, adhd,
+      special, adhd, multi,
       note,
       sepCodes, careCodes
     };
@@ -411,6 +418,7 @@ console.log('class-assign webapp v3.4.2 loaded');
     const female = new Array(C).fill(0);
     const spec = new Array(C).fill(0);
     const adhd = new Array(C).fill(0);
+    const multi = new Array(C).fill(0);
     const acadSum = new Array(C).fill(0);
     const peerSum = new Array(C).fill(0);
     const parentSum = new Array(C).fill(0);
@@ -422,6 +430,7 @@ console.log('class-assign webapp v3.4.2 loaded');
       else if (rows[i].gender === "여") female[c] += 1;
       spec[c] += rows[i].special;
       adhd[c] += rows[i].adhd;
+      multi[c] += (rows[i].multi||0);
       acadSum[c] += rows[i].acadS;
       peerSum[c] += rows[i].peerS;
       parentSum[c] += rows[i].parentS;
@@ -491,6 +500,17 @@ console.log('class-assign webapp v3.4.2 loaded');
       }
     }
 
+
+    // 4순위: 다문화(반별 균등 분산; 설정에 따라 미적용/보통/강)
+    const totalMulti = multi.reduce((a,b)=>a+b,0);
+    const multiExpected = totalMulti / (C || 1);
+    let multiSqErr = 0;
+    for (let c=0;c<C;c++){
+      const d = multi[c] - multiExpected;
+      multiSqErr += d*d;
+    }
+    const multiMode = (weights && weights.multiMode) ? String(weights.multiMode) : "off";
+    const multiModeK = (multiMode==="strong") ? 700 : (multiMode==="medium") ? 300 : 0;
     let score =
       80*vCnt +
       260*genderSqErr +
@@ -500,6 +520,8 @@ console.log('class-assign webapp v3.4.2 loaded');
       2500*adhdOverflow +
       // 하드캡은 다른 항목보다 우선해서 지키도록 큰 벌점
       2000000*adhdHardCapOverflow +
+      (multiModeK * multiSqErr) +
+      (weights.wMulti * multiSqErr) +
       weights.wParent*vParent +
       weights.wAcad*vAcad +
       weights.wPeer*vPeer;
@@ -532,7 +554,7 @@ console.log('class-assign webapp v3.4.2 loaded');
     }
     score += weights.carePenalty * careMiss;
 
-    return {score, sepViol, careMiss, cnt, male, female, spec, adhd, acadSum, peerSum, parentSum};
+    return {score, sepViol, careMiss, cnt, male, female, spec, adhd, multi, acadSum, peerSum, parentSum};
 
   }
 
@@ -798,10 +820,12 @@ console.log('class-assign webapp v3.4.2 loaded');
       wAcad: parseInt(wAcad.value,10),
       wPeer: parseInt(wPeer.value,10),
       wParent: parseInt(wParent.value,10),
+      wMulti: (wMulti ? parseInt(wMulti.value,10) : 0),
       sepPenalty: strengthToPenalty(sepStrengthEl.value, 'sep'),
       carePenalty: strengthToPenalty(careStrengthEl.value, 'care'),
       // ADHD 반당 최대 인원(선택). auto면 제한 없음.
-      adhdCap: (adhdCapEl && String(adhdCapEl.value||'auto') !== 'auto') ? Math.max(1, Math.min(5, parseInt(adhdCapEl.value,10))) : null
+      adhdCap: (adhdCapEl && String(adhdCapEl.value||'auto') !== 'auto') ? Math.max(1, Math.min(5, parseInt(adhdCapEl.value,10))) : null,
+      multiMode: (multiModeEl ? String(multiModeEl.value||"off") : "off")
     };
 
     let payload = null;
@@ -831,6 +855,7 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
       base["학부모민원"] = r.parent;
       base["특수여부"] = r.special ? "Y" : "N";
       base["ADHD여부"] = r.adhd ? "Y" : "N";
+      base["다문화여부"] = r.multi ? "Y" : "N";
       base["비고"] = r.note;
 
       // 분리/배려는 '학생' 표기로 통일하여 하나의 열만 남깁니다.
@@ -844,7 +869,7 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
     const payload = {
       meta: { total: studentRows.length, classCount, iterations, seed, elapsedMs, weights, sepStrength: sepStrengthEl.value, careStrength: careStrengthEl.value },
       best: { score: best.score, sepPairs: best.sepViol, carePairs: best.careMiss, sepStudents: unsat.sepStudents, careStudents: unsat.careStudents },
-      arrays: { cnt: best.cnt, male: best.male, female: best.female, spec: best.spec, adhd: best.adhd },
+      arrays: { cnt: best.cnt, male: best.male, female: best.female, spec: best.spec, adhd: best.adhd, multi: best.multi },
       resultRows,
       unsatisfied: { sepItems: unsat.sepItems, careItems: unsat.careItems }
     };
@@ -930,11 +955,11 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
 
     function renderClassSummary(){
       const C = payload.meta.classCount;
-      const {cnt, male, female, spec, adhd} = payload.arrays;
+      const {cnt, male, female, spec, adhd, multi} = payload.arrays;
 
-      let html = "<div style='overflow:auto'><table><thead><tr><th>반</th><th>인원</th><th>남</th><th>여</th><th>특수</th><th>ADHD</th></tr></thead><tbody>";
+      let html = "<div style='overflow:auto'><table><thead><tr><th>반</th><th>인원</th><th>남</th><th>여</th><th>특수</th><th>ADHD</th><th>다문화</th></tr></thead><tbody>";
       for (let c=0;c<C;c++){
-        html += `<tr><td>${c+1}</td><td>${cnt[c]}</td><td>${male[c]}</td><td>${female[c]}</td><td>${spec[c]}</td><td>${adhd[c]}</td></tr>`;
+        html += `<tr><td>${c+1}</td><td>${cnt[c]}</td><td>${male[c]}</td><td>${female[c]}</td><td>${spec[c]}</td><td>${adhd[c]}</td><td>${(multi?multi[c]:0)}</td></tr>`;
       }
       html += "</tbody></table></div>";
       classSummary.innerHTML = html;
@@ -1241,6 +1266,11 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
       const ws = XLSX.utils.json_to_sheet(sorted, { header: headerOrder });
       XLSX.utils.book_append_sheet(wb, ws, "반배정결과");
 
+      // Multicultural students sheet
+      const multiRows = sorted.filter(r=>String(r["다문화여부"]||"").toUpperCase()==="Y");
+      const multiWs = XLSX.utils.json_to_sheet(multiRows, { header: headerOrder });
+      XLSX.utils.book_append_sheet(wb, multiWs, "다문화학생");
+
       const metaSheet = XLSX.utils.aoa_to_sheet([
         ["항목","값"],
         ["총원", payload.meta.total],
@@ -1251,8 +1281,10 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
         ["학업 가중치", payload.meta.weights.wAcad],
         ["교우 가중치", payload.meta.weights.wPeer],
         ["민원 가중치", payload.meta.weights.wParent],
+        ["다문화 가중치", payload.meta.weights.wMulti],
         ["분리강도", payload.meta.sepStrength],
         ["배려강도", payload.meta.careStrength],
+        ["다문화 적용", payload.meta.weights.multiMode],
         ["분리 미충족(명)", payload.best.sepStudents],
         ["배려 미충족(명)", payload.best.careStudents],
         ["분리 위반(쌍)", payload.best.sepPairs],

@@ -24,6 +24,15 @@
     .panelTitle{font-size:14px;margin:0 0 10px 0;}
     .divider{height:1px;background:rgba(255,255,255,.08);margin:12px 0;}
     label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
+    /* Setup panel readability */
+    #setupTab aside.card label{font-size:14px; line-height:1.25;}
+    #setupTab aside.card input[type=file],
+    #setupTab aside.card input[type=number],
+    #setupTab aside.card select{font-size:15px;}
+
+
+
+
     input[type=file],input[type=number],select{width:100%;background:#0b1220;color:#e5e7eb;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 12px;outline:none}
 select:focus{border-color:rgba(96,165,250,.8)}
 option{background:#0b1220;color:#e5e7eb}
@@ -87,41 +96,46 @@ option{background:#0b1220;color:#e5e7eb}
         <div class="small" style="margin-top:8px">* 처음 사용하시면 위 양식을 내려받아 <b>열 이름/형식</b>을 그대로 유지해 주세요.</div>
         <div class="divider"></div>
 
-        <label>반 개수</label>
+        <label>1. 반 개수</label>
         <input id="classCount" type="number" min="2" max="30" value="10" />
         <div class="divider"></div>
 
-        <label>시뮬레이션 횟수(클수록 더 균형 / 느려질 수 있음)</label>
+        <label>2. 시뮬레이션 횟수(클수록 더 균형 / 느려질 수 있음)</label>
         <input id="iterations" type="number" min="200" max="60000" step="200" value="8000" />
         <div class="small">* 250명/10반 기준: 8,000~20,000 추천</div>
 
         <div class="divider"></div>
 
-        <label>랜덤 시드(같은 값이면 같은 결과)</label>
+        <label>3. 랜덤 시드(같은 값이면 같은 결과)</label>
         <input id="seed" type="number" min="0" max="999999" value="42" />
 
         <div class="divider"></div>
 
-        <label>가중치(우선순위)</label>
+        <label>4. 가중치(우선순위)</label>
         <div style="margin-top:10px">
-          <label>학업성취 가중치</label>
+          <label>4-1. 학업성취 가중치</label>
           <input id="wAcad" type="range" min="0" max="600" value="160" step="10" />
           <div class="kv"><span>0</span><span id="wAcadV">160</span><span>600</span></div>
         </div>
         <div style="margin-top:10px">
-          <label>교우관계 가중치</label>
+          <label>4-2. 교우관계 가중치</label>
           <input id="wPeer" type="range" min="0" max="600" value="160" step="10" />
           <div class="kv"><span>0</span><span id="wPeerV">160</span><span>600</span></div>
         </div>
         <div style="margin-top:10px">
-          <label>학부모민원 가중치</label>
+          <label>4-3. 학부모민원 가중치</label>
           <input id="wParent" type="range" min="0" max="600" value="260" step="10" />
           <div class="kv"><span>0</span><span id="wParentV">260</span><span>600</span></div>
+        </div>
+        <div style="margin-top:10px">
+          <label>4-4. 다문화학생 가중치</label>
+          <input id="wMulti" type="range" min="0" max="600" value="160" step="10" />
+          <div class="kv"><span>0</span><span id="wMultiV">160</span><span>600</span></div>
         </div>
 
         <div class="divider"></div>
 
-        <label><strong style='font-size:1.05em'>ADHD 반당 최대 인원</strong>(제한)</label>
+        <label>5. <strong style='font-size:1.05em'>ADHD 반당 최대 인원</strong>(제한)</label>
         <select id="adhdCap">
           <option value="auto" selected>자동(제한 없음 · 균등 분산 우선)</option>
           <option value="1">1명</option>
@@ -132,7 +146,17 @@ option{background:#0b1220;color:#e5e7eb}
         </select>
         <div class="small" style="margin-top:8px">* 예: ADHD 30명 / 10반이라면 평균 3명입니다.<br> 현실적으로 불가능한 제한(예: 최대 1명)을 선택하면, 알고리즘은 <b>가능한 한</b> 제한을 지키도록 시도합니다.<br><br></div>
 
-        <label><strong style='font-size:1.05em'>분리요청 강도</strong>(같은 반이 되면 안 됨)</label>
+        <label>6. <strong style='font-size:1.05em'>다문화학생 배정</strong>(3단계)</label>
+        <select id="multiMode">
+          <option value="off" selected>미적용</option>
+          <option value="medium">보통 (가급적 반별 균등 분산)</option>
+          <option value="strong">강 (가능한 한 균등 분산)</option>
+        </select>
+        <div class="small" style="margin-top:8px">* 엑셀에 <b>다문화여부</b> 열이 있으면 Y/N로 인식합니다. (없으면 모두 N으로 처리)</div>
+
+        <div class="divider"></div>
+
+        <label>7. <strong style='font-size:1.05em'>분리요청 강도</strong>(같은 반이 되면 안 됨)</label>
         <select id="sepStrength">
           <option value="strict">엄격 (원칙적으로 같은 반 배정 금지)</option>
           <option value="strong" selected>강 (최대한 다른 반으로 분산)</option>
@@ -141,7 +165,7 @@ option{background:#0b1220;color:#e5e7eb}
         </select>
 
         <div style="margin-top:10px">
-          <label><strong style='font-size:1.05em'>배려요청 강도</strong>(같은 반이 되면 좋음)</label>
+          <label>8. <strong style='font-size:1.05em'>배려요청 강도</strong>(같은 반이 되면 좋음)</label>
           <select id="careStrength">
             <option value="strict">엄격 (가능한 한 같은 반으로 배정)</option>
             <option value="strong" selected>강 (최대한 같은 반으로 배정)</option>
