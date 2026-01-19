@@ -157,10 +157,13 @@ console.log('class-assign webapp v3.4.2 loaded');
   // ----- DOM refs -----
   const fileInput = document.getElementById("fileInput");
   const fileBtn = document.getElementById("fileBtn");
+  const fileNameHint = document.getElementById("fileNameHint");
   const filePill = document.getElementById("filePill");
   const rowsPill = document.getElementById("rowsPill");
   const errorsDiv = document.getElementById("errors");
   const statsDiv = document.getElementById("stats");
+  const settingSummaryBox = document.getElementById("settingSummaryBox");
+  const settingSummaryInline = document.getElementById("settingSummaryInline");
   const previewTableEl = document.getElementById("previewTable");
   const nextStepsCard = document.getElementById("nextStepsCard");
 
@@ -182,11 +185,9 @@ console.log('class-assign webapp v3.4.2 loaded');
   const runBtn = document.getElementById("runBtn");
   const overlay = document.getElementById("overlay");
 
-  // 파일 업로드 버튼(숨겨진 input 트리거)
-  fileBtn?.addEventListener("click", (e)=>{
-    try{ e?.preventDefault?.(); e?.stopPropagation?.(); }catch(err){}
-    try{ fileInput?.click?.(); }catch(err){}
-  });
+  // Result summary UI
+  const classCards = document.getElementById("classCards");
+
 
   // ----- Tab UI -----
   const tabSetupBtn = document.getElementById("tabSetup");
@@ -218,6 +219,51 @@ console.log('class-assign webapp v3.4.2 loaded');
   }
   [wAcad,wPeer,wParent,wMulti].filter(Boolean).forEach(el=>el.addEventListener("input", syncWeights));
   syncWeights();
+
+  // ----- Setting summary (UI) -----
+  function selText(sel){
+    try{
+      const o = sel && sel.options ? sel.options[sel.selectedIndex] : null;
+      return o ? String(o.textContent||o.innerText||o.value) : '';
+    }catch(_){return '';}
+  }
+
+  function updateSettingSummary(){
+    const cc = classCountEl?.value ?? '';
+    const it = iterationsEl?.value ?? '';
+    const seed = seedEl?.value ?? '';
+    const sSep = selText(sepStrengthEl);
+    const sCare = selText(careStrengthEl);
+    const sAdhd = selText(adhdCapEl);
+    const sMulti = selText(multiModeEl);
+
+    const parts = [
+      `반 개수: ${cc}`,
+      `시뮬레이션: ${Number(it||0).toLocaleString()}회`,
+      `배정 기준값: ${seed}`,
+      `가중치(학업/관계/민원/다문화): ${wAcad?.value||0}/${wPeer?.value||0}/${wParent?.value||0}/${wMulti?.value||0}`,
+      `ADHD: ${sAdhd || '자동'}`,
+      `다문화 배정: ${sMulti || '미적용'}`,
+      `분리요청: ${sSep || ''}`,
+      `배려요청: ${sCare || ''}`,
+    ];
+
+    const text = '현재 조건: ' + parts.join(' · ');
+    if (settingSummaryBox) settingSummaryBox.textContent = text;
+    if (settingSummaryInline) settingSummaryInline.textContent = text;
+  }
+
+  // 설정 변경 시 요약 자동 업데이트
+  [classCountEl, iterationsEl, seedEl, wAcad, wPeer, wParent, wMulti, sepStrengthEl, careStrengthEl, adhdCapEl, multiModeEl].filter(Boolean)
+    .forEach(el=>el.addEventListener('input', updateSettingSummary));
+  [sepStrengthEl, careStrengthEl, adhdCapEl, multiModeEl].filter(Boolean)
+    .forEach(el=>el.addEventListener('change', updateSettingSummary));
+  updateSettingSummary();
+
+  // 파일 업로드 버튼 (커스텀)
+  if (fileBtn && fileInput){
+    fileBtn.addEventListener('click', ()=> fileInput.click());
+  }
 
   function showOverlay(on, msg){
     overlay.style.display = on ? "flex" : "none";
@@ -780,16 +826,21 @@ console.log('class-assign webapp v3.4.2 loaded');
   }
 
   // ----- File load -----
+
   fileInput?.addEventListener("change", async (e)=>{
     setErrors("");
     const file = e.target.files?.[0];
     if (!file){
       filePill.textContent = "엑셀 미선택";
+      if (fileNameHint) fileNameHint.textContent = "선택된 파일 없음";
+      if (fileBtn) fileBtn.textContent = "파일 업로드";
       try{ if(nextStepsCard) nextStepsCard.style.display = "none"; }catch(e){}
       setRunEnabled(false);
       return;
     }
     filePill.textContent = `선택됨: ${file.name}`;
+    if (fileNameHint) fileNameHint.textContent = file.name;
+    if (fileBtn) fileBtn.textContent = '엑셀 파일 변경';
 
     showOverlay(true, "엑셀을 읽는 중…");
     await new Promise(r=>setTimeout(r, 10));
@@ -825,6 +876,7 @@ console.log('class-assign webapp v3.4.2 loaded');
       rowsPill.textContent = `${studentRows.length}명`;
       renderSetupPreviewTable(rawRows, 20);
       summarize(studentRows);
+      updateSettingSummary();
       try{ if(nextStepsCard) nextStepsCard.style.display = ""; }catch(e){}
       statusPill.textContent = missingStd.length ? `엑셀 로드됨(권장열 누락: ${missingStd.join(', ')})` : "엑셀 로드됨";
       setRunEnabled(!!(studentRows && studentRows.length>0));
@@ -998,6 +1050,27 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
       const C = payload.meta.classCount;
       const {cnt, male, female, spec, adhd, multi} = payload.arrays;
 
+      // 카드 요약(한눈에 보기)
+      if (classCards){
+        let cards = "<div style='display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;'>";
+        for (let c=0;c<C;c++){
+          const m = male[c]||0, f = female[c]||0;
+          const s = spec[c]||0, a = adhd[c]||0;
+          const mu = (multi?multi[c]:0)||0;
+          cards += `
+            <div class="card" style="padding:10px;"> 
+              <div style="font-weight:900;">${c+1}반</div>
+              <div class="small" style="margin-top:6px;line-height:1.6;"> 
+                인원 <b>${cnt[c]}</b> · 남 ${m} / 여 ${f}<br/>
+                특수 ${s} · ADHD ${a} · 다문화 ${mu}
+              </div>
+            </div>`;
+        }
+        cards += "</div>";
+        classCards.innerHTML = cards;
+      }
+
+      // 표(정밀 비교)
       let html = "<div style='overflow:auto'><table><thead><tr><th>반</th><th>인원</th><th>남</th><th>여</th><th>특수</th><th>ADHD</th><th>다문화</th></tr></thead><tbody>";
       for (let c=0;c<C;c++){
         html += `<tr><td>${c+1}</td><td>${cnt[c]}</td><td>${male[c]}</td><td>${female[c]}</td><td>${spec[c]}</td><td>${adhd[c]}</td><td>${(multi?multi[c]:0)}</td></tr>`;

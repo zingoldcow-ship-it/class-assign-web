@@ -58,17 +58,22 @@ option{background:#0b1220;color:#e5e7eb}
     canvas{width:100% !important;height:100% !important;display:block}
     a{color:#b9c9ff}
 
-    /* Accordion (설정 섹션 접기) */
-    .acc{border:1px solid rgba(255,255,255,.10);border-radius:14px;background:rgba(255,255,255,.03);padding:10px 12px;margin:10px 0;}
-    .acc > summary{cursor:pointer;list-style:none;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;font-weight:900;font-size:14px;color:var(--text);}
-    .acc > summary::-webkit-details-marker{display:none;}
-    .acc > summary .subline{display:block;font-weight:700;color:var(--muted);font-size:12px;margin-top:3px;}
-    .acc > summary::after{content:"▸";opacity:.9;margin-top:1px;transition:transform .15s ease;}
-    details[open].acc > summary::after{transform:rotate(90deg)}
-    .accInner{padding-top:10px;}
+    /* Accordion + sticky run bar */
+    main.wrap{padding-bottom:96px;} /* space for fixed bottom bar */
+    details.acc{border:1px solid rgba(255,255,255,.10);border-radius:12px;background:rgba(255,255,255,.03);padding:10px 10px;margin:10px 0;}
+    details.acc[open]{background:rgba(255,255,255,.05);}
+    details.acc summary{cursor:pointer;font-weight:900;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+    details.acc summary::-webkit-details-marker{display:none;}
+    .accHint{font-size:12px;color:var(--muted);margin-top:8px;}
+    .stickyBar{position:fixed;left:0;right:0;bottom:0;z-index:80;background:rgba(11,16,32,.92);backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,.10);}
+    .stickyInner{max-width:1300px;margin:0 auto;padding:10px 14px;display:flex;gap:10px;align-items:center;}
+    .stickyInner .summaryInline{flex:1;min-width:180px;}
+    .stickyInner button{width:360px;max-width:48vw;}
+    @media (max-width: 980px){
+      .stickyInner{flex-direction:column;align-items:stretch;}
+      .stickyInner button{width:100%;max-width:none;}
+    }
 
-    /* File upload button */
-    .fileInputHidden{position:absolute;left:-9999px;width:1px;height:1px;opacity:0;}
   </style>
 </head>
 <body>
@@ -99,8 +104,9 @@ option{background:#0b1220;color:#e5e7eb}
       <aside class="card" style="position:sticky; top:120px;">
         <h2 class="panelTitle">⚙️ 설정</h2>
         <label>학생 데이터 엑셀(.xlsx)</label>
-        <input id="fileInput" class="fileInputHidden" type="file" accept=".xlsx" />
-        <button id="fileBtn" type="button" class="btnSecondary">엑셀 업로드</button>
+        <input id="fileInput" type="file" accept=".xlsx" style="display:none" />
+        <button type="button" class="btnSecondary" id="fileBtn">파일 업로드</button>
+        <div class="small" id="fileNameHint" style="margin-top:6px">선택된 파일 없음</div>
         <div style="margin-top:10px">
           <a href="template.xlsx" download="반배정_양식_샘플(토글적용).xlsx" style="display:block;text-decoration:none">
             <button type="button" class="btnSecondary">샘플 양식 다운로드</button>
@@ -109,114 +115,111 @@ option{background:#0b1220;color:#e5e7eb}
         <div class="small" style="margin-top:8px">* 처음 사용하시면 위 양식을 내려받아 <b>열 이름/형식</b>을 그대로 유지해 주세요.</div>
         <div class="divider"></div>
 
-        <!-- ① 기본 설정 (기본으로 열려 있음) -->
-        <details class="acc" open>
+
+        <div class="accHint">⬇ 아래 <b>화살표</b>를 눌러 설정을 펼친 뒤 값을 확인/입력하세요.</div>
+
+        <details class="acc" id="accBasic">
           <summary>
-            <span>
-              ① 기본 설정
-              <span class="subline">(여기까지만 만져도 실행 가능)</span>
-            </span>
+            <span>① 기본 설정</span>
+            <span class="small" style="opacity:.9">(여기까지만 해도 실행 가능)</span>
           </summary>
-          <div class="accInner">
-            <label>1. 반 개수</label>
-            <input id="classCount" type="number" min="2" max="30" value="10" />
-            <div class="divider"></div>
+          <div style="height:10px"></div>
 
-            <label>2. 시뮬레이션 횟수(클수록 더 균형 / 느려질 수 있음)</label>
-            <input id="iterations" type="number" min="200" max="60000" step="200" value="8000" />
-            <div class="small">* 250명/10반 기준: 8,000~20,000 추천</div>
-            <div class="divider"></div>
+          <label>1. 반 개수</label>
+          <input id="classCount" type="number" min="2" max="30" value="10" />
+          <div class="divider"></div>
 
-            <label>3. 배정 기준값(랜덤 시드: 같은 값이면 같은 결과)</label>
-            <input id="seed" type="number" min="0" max="999999" value="42" />
+          <label>2. 시뮬레이션 횟수</label>
+          <div class="small" style="margin-top:-2px; margin-bottom:8px;">(클수록 더 균형 / 느려질 수 있음)</div>
+          <input id="iterations" type="number" min="200" max="60000" step="200" value="8000" />
+          <div class="small">* 250명/10반 기준: 8,000~20,000 추천</div>
+          <div class="divider"></div>
+
+          <label>3. 배정 기준값</label>
+          <div class="small" style="margin-top:-2px; margin-bottom:8px;">(같은 값을 쓰면 결과가 그대로 유지됩니다.)</div>
+          <input id="seed" type="number" min="0" max="999999" value="42" />
+        </details>
+
+        <details class="acc" id="accWeights">
+          <summary>
+            <span>② 가중치 설정</span>
+            <span class="small" style="opacity:.9">(학업·관계·민원·다문화 균형 조정)</span>
+          </summary>
+          <div style="height:10px"></div>
+
+          <label>4-1. 학업성취 가중치</label>
+          <input id="wAcad" type="range" min="0" max="600" value="160" step="10" />
+          <div class="kv"><span>0</span><span id="wAcadV">160</span><span>600</span></div>
+
+          <div style="margin-top:10px">
+            <label>4-2. 교우관계 가중치</label>
+            <input id="wPeer" type="range" min="0" max="600" value="160" step="10" />
+            <div class="kv"><span>0</span><span id="wPeerV">160</span><span>600</span></div>
+          </div>
+
+          <div style="margin-top:10px">
+            <label>4-3. 학부모민원 가중치</label>
+            <input id="wParent" type="range" min="0" max="600" value="260" step="10" />
+            <div class="kv"><span>0</span><span id="wParentV">260</span><span>600</span></div>
+          </div>
+
+          <div style="margin-top:10px">
+            <label>4-4. 다문화학생 가중치</label>
+            <input id="wMulti" type="range" min="0" max="600" value="160" step="10" />
+            <div class="kv"><span>0</span><span id="wMultiV">160</span><span>600</span></div>
           </div>
         </details>
 
-        <!-- ② 가중치 설정 (기본 접힘) -->
-        <details class="acc">
+        <details class="acc" id="accConstraints">
           <summary>
-            <span>
-              ② 가중치 설정
-              <span class="subline">(학업·관계·민원·다문화 균형 조정)</span>
-            </span>
+            <span>③ 요청·제약 설정</span>
+            <span class="small" style="opacity:.9">(분리·배려·특수 상황 고려)</span>
           </summary>
-          <div class="accInner">
-            <div style="margin-top:10px">
-              <label>4-1. 학업성취 가중치</label>
-              <input id="wAcad" type="range" min="0" max="600" value="160" step="10" />
-              <div class="kv"><span>0</span><span id="wAcadV">160</span><span>600</span></div>
-            </div>
-            <div style="margin-top:10px">
-              <label>4-2. 교우관계 가중치</label>
-              <input id="wPeer" type="range" min="0" max="600" value="160" step="10" />
-              <div class="kv"><span>0</span><span id="wPeerV">160</span><span>600</span></div>
-            </div>
-            <div style="margin-top:10px">
-              <label>4-3. 학부모민원 가중치</label>
-              <input id="wParent" type="range" min="0" max="600" value="260" step="10" />
-              <div class="kv"><span>0</span><span id="wParentV">260</span><span>600</span></div>
-            </div>
-            <div style="margin-top:10px">
-              <label>4-4. 다문화학생 가중치</label>
-              <input id="wMulti" type="range" min="0" max="600" value="160" step="10" />
-              <div class="kv"><span>0</span><span id="wMultiV">160</span><span>600</span></div>
-            </div>
+          <div style="height:10px"></div>
+
+          <label>5. <strong style='font-size:1.05em'>ADHD 반당 최대 인원</strong></label>
+          <select id="adhdCap">
+            <option value="auto" selected>자동(제한 없음 · 균등 분산 우선)</option>
+            <option value="1">1명</option>
+            <option value="2">2명</option>
+            <option value="3">3명</option>
+            <option value="4">4명</option>
+            <option value="5">5명</option>
+          </select>
+          <div class="small" style="margin-top:8px">* 예: ADHD 30명 / 10반이라면 평균 3명입니다.<br>현실적으로 불가능한 제한(예: 최대 1명)을 선택하면, 알고리즘은 <b>가능한 한</b> 제한을 지키도록 시도합니다.</div>
+
+          <div class="divider"></div>
+
+          <label>6. <strong style='font-size:1.05em'>다문화학생 배정</strong></label>
+          <select id="multiMode">
+            <option value="off" selected>미적용</option>
+            <option value="medium">보통 (가급적 반별 균등 분산)</option>
+            <option value="strong">강 (가능한 한 균등 분산)</option>
+          </select>
+          <div class="small" style="margin-top:8px">* 엑셀에 <b>다문화여부</b> 열이 있으면 Y/N로 인식합니다. (없으면 모두 N으로 처리)</div>
+
+          <div class="divider"></div>
+
+          <label>7. <strong style='font-size:1.05em'>분리요청 강도</strong></label>
+          <select id="sepStrength">
+            <option value="strict">엄격 (원칙적으로 같은 반 배정 금지)</option>
+            <option value="strong" selected>강 (최대한 다른 반으로 분산)</option>
+            <option value="medium">보통 (가급적 다른 반으로 분산)</option>
+            <option value="weak">약함 (가능하면 분산, 여건에 따라 허용)</option>
+          </select>
+
+          <div style="margin-top:10px">
+            <label>8. <strong style='font-size:1.05em'>배려요청 강도</strong></label>
+            <select id="careStrength">
+              <option value="strict">엄격 (가능한 한 같은 반으로 배정)</option>
+              <option value="strong" selected>강 (최대한 같은 반으로 배정)</option>
+              <option value="medium">보통 (가급적 같은 반으로 배정)</option>
+              <option value="weak">약함 (가능하면 같은 반, 여건에 따라 허용)</option>
+            </select>
           </div>
         </details>
 
-        <!-- ③ 요청·제약 설정 (기본 접힘) -->
-        <details class="acc">
-          <summary>
-            <span>
-              ③ 요청·제약 설정
-              <span class="subline">(분리·배려·특수 상황 고려)</span>
-            </span>
-          </summary>
-          <div class="accInner">
-            <label>5. <strong style='font-size:1.05em'>ADHD 반당 최대 인원</strong>(제한)</label>
-            <select id="adhdCap">
-              <option value="auto" selected>자동(제한 없음 · 균등 분산 우선)</option>
-              <option value="1">1명</option>
-              <option value="2">2명</option>
-              <option value="3">3명</option>
-              <option value="4">4명</option>
-              <option value="5">5명</option>
-            </select>
-            <div class="small" style="margin-top:8px">* 예: ADHD 30명 / 10반이라면 평균 3명입니다.<br> 현실적으로 불가능한 제한(예: 최대 1명)을 선택하면, 알고리즘은 <b>가능한 한</b> 제한을 지키도록 시도합니다.<br><br></div>
-
-            <label>6. <strong style='font-size:1.05em'>다문화학생 배정</strong>(3단계)</label>
-            <select id="multiMode">
-              <option value="off" selected>미적용</option>
-              <option value="medium">보통 (가급적 반별 균등 분산)</option>
-              <option value="strong">강 (가능한 한 균등 분산)</option>
-            </select>
-            <div class="small" style="margin-top:8px">* 엑셀에 <b>다문화여부</b> 열이 있으면 Y/N로 인식합니다. (없으면 모두 N으로 처리)</div>
-            <div class="divider"></div>
-
-            <label>7. <strong style='font-size:1.05em'>분리요청 강도</strong>(같은 반이 되면 안 됨)</label>
-            <select id="sepStrength">
-              <option value="strict">엄격 (원칙적으로 같은 반 배정 금지)</option>
-              <option value="strong" selected>강 (최대한 다른 반으로 분산)</option>
-              <option value="medium">보통 (가급적 다른 반으로 분산)</option>
-              <option value="weak">약함 (가능하면 분산, 여건에 따라 허용)</option>
-            </select>
-
-            <div style="margin-top:10px">
-              <label>8. <strong style='font-size:1.05em'>배려요청 강도</strong>(같은 반이 되면 좋음)</label>
-              <select id="careStrength">
-                <option value="strict">엄격 (가능한 한 같은 반으로 배정)</option>
-                <option value="strong" selected>강 (최대한 같은 반으로 배정)</option>
-                <option value="medium">보통 (가급적 같은 반으로 배정)</option>
-                <option value="weak">약함 (가능하면 같은 반, 여건에 따라 허용)</option>
-              </select>
-            </div>
-          </div>
-        </details>
-
-        <button id="runBtn" type="button" disabled>반배정 실행 → 결과 탭 보기</button>
-        <div class="small" style="margin-top:10px">
-          TIP: 결과가 마음에 안 들면 <b>시드</b>를 바꾸거나 <b>시뮬레이션 횟수</b>를 늘려보세요.
-        </div>
+        <div class="small" style="margin-top:10px">* 실행 버튼은 화면 맨 아래에 고정되어 있습니다.</div>
       </aside>
 
       <section style="display:flex; flex-direction:column; gap:14px;">
@@ -225,6 +228,10 @@ option{background:#0b1220;color:#e5e7eb}
           <div id="stats" class="small">엑셀을 선택하면 통계/미리보기가 표시됩니다.</div>
         </section>
 
+        <section class="card" id="settingSummaryCard">
+          <h2 class="panelTitle">🧾 현재 적용 조건</h2>
+          <div id="settingSummaryBox" class="small">기본값 기준으로 실행 준비가 되어 있습니다.</div>
+        </section>
         <section class="card">
           <h2 class="panelTitle">🔎 미리보기(상위 20명)</h2>
           <div id="legendPreview" class="small" style="opacity:0.9; margin-top:-4px; margin-bottom:6px;">아이콘 안내: 🌏 다문화 │ 🧠 ADHD │ 🔗 분리요청 │ 🤝 배려요청</div>
@@ -277,7 +284,7 @@ option{background:#0b1220;color:#e5e7eb}
       <section class="chartGrid">
         <section class="card">
           <h2 class="panelTitle">📊 반별 요약</h2>
-          <div id="classSummary" class="small">-</div>
+          <div id="classCards" class="small"></div><div style="height:10px"></div><div id="classSummary" class="small">-</div>
         </section>
         <section class="card">
           <h2 class="panelTitle">⚠️ 결과 리포트</h2>
@@ -338,7 +345,7 @@ option{background:#0b1220;color:#e5e7eb}
           <select id="classFilter"></select>
           <span class="small" id="tableMeta"></span>
         </div>
-        <div id="legendResult" class="small" style="opacity:0.9; margin-top:-6px; margin-bottom:10px;">아이콘 안내: 🌏 다문화 │ 🧠 ADHD │ 🔗 분리요청 │ 🤝 배려요청</div>
+        
         <div style="overflow:auto; max-height: 560px;">
           <table id="resultTable"></table>
         </div>
@@ -346,6 +353,17 @@ option{background:#0b1220;color:#e5e7eb}
     </div>
   </section>
 </main>
+
+
+
+<div class="stickyBar" id="stickyBar">
+  <div class="stickyInner">
+    <div class="summaryInline">
+      <div class="small" id="settingSummaryInline">설정을 확인한 뒤 실행하세요.</div>
+    </div>
+    <button id="runBtn" type="button" disabled>반배정 실행 → 결과 탭 보기</button>
+  </div>
+</div>
 
 <div class="overlay" id="overlay">
   <div class="box">
