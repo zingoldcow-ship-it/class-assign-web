@@ -5,12 +5,14 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>반배정 도우미 (브라우저 전용)</title>
   <style>
-    :root{ --bg:#0b1020; --card:#121a33; --text:#e9ecf1; --muted:#a9b1c6; --accent:#7aa2ff; --danger:#ff6b6b; --ok:#3ddc97; }
+    :root{ --bg:#0b1020; --card:#121a33; --text:#e9ecf1; --muted:#a9b1c6; --accent:#7aa2ff; --danger:#ff6b6b; --ok:#3ddc97; --desc:#9fb8ff; --subtle:#9aa0a6; --titleAccent:#ffe9a6; }
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans KR,Arial,sans-serif;background:var(--bg);color:var(--text);}
     header{padding:16px;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;background:rgba(11,16,32,.9);backdrop-filter:blur(8px);z-index:50;}
     .wrap{max-width:1300px;margin:0 auto;padding:14px;}
     h1{margin:0;font-size:18px;}
     .sub{margin-top:6px;color:var(--muted);font-size:13px;line-height:1.4}
+    .sub .flow{color:var(--desc)}
+    .sub .privacy{color:var(--subtle)}
     .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .pill{font-size:12px;border:1px solid rgba(255,255,255,.14);padding:6px 10px;border-radius:999px;color:var(--muted);}
     .pill.ok{border-color:rgba(61,220,151,.55);color:#c9ffe9}
@@ -70,11 +72,11 @@ option{background:#0b1220;color:#e5e7eb}
     /* Accordion (설정 섹션 접기) */
     .acc{border:1px solid rgba(255,255,255,.10);border-radius:14px;background:rgba(255,255,255,.03);padding:10px 12px;margin:10px 0;}
     /* 섹션 제목(기본 설정/학업·관계·민원·다문화 설정 등) 가독성 강화 */
-    .acc > summary{cursor:pointer;list-style:none;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;font-weight:900;font-size:18px;color:var(--text);}
+    .acc > summary{cursor:pointer;list-style:none;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;font-weight:900;font-size:18px;color:var(--titleAccent);}
     .acc > summary::-webkit-details-marker{display:none;}
     .acc > summary .subline{display:block;font-weight:700;color:var(--muted);font-size:13px;margin-top:4px;}
     /* 토글(화살표)을 더 크게/눈에 띄게 */
-    .acc > summary::after{content:"▾";opacity:.95;margin-top:2px;font-size:18px;transition:transform .15s ease;}
+    .acc > summary::after{content:"▾";opacity:.95;margin-top:2px;font-size:18px;transition:transform .15s ease;color:var(--titleAccent);}
     details[open].acc > summary::after{transform:rotate(90deg)}
     .accInner{padding-top:10px;}
 
@@ -90,8 +92,8 @@ option{background:#0b1220;color:#e5e7eb}
   <div class="wrap">
     <h1>📘 반배정 도우미 (브라우저 전용)</h1>
     <div class="sub">
-      ① <b>샘플 양식</b>에 학생 정보를 입력 → ② 엑셀(.xlsx) 업로드 → ③ 설정(반 개수/가중치/분리·배려 강도) → ④ <b>반배정 실행</b> → ⑤ 결과 확인/엑셀 다운로드<br/>
-      🔐 <b>모든 처리는 내 브라우저에서만</b> 이루어지며, 업로드한 파일과 데이터는 <b>어떤 서버로도 전송되지 않습니다</b>.
+      <div class="flow">① <b>샘플 양식</b>에 학생 정보를 입력 → ② 엑셀(.xlsx) 업로드 → ③ 설정(반 개수/가중치/분리·배려 강도) → ④ <b>반배정 실행</b> → ⑤ 결과 확인/엑셀 다운로드</div>
+      <div class="privacy">🔐 <b>모든 처리는 내 브라우저에서만</b> 이루어지며, 업로드한 파일과 데이터는 <b>어떤 서버로도 전송되지 않습니다</b>.</div>
     </div>
     <div class="row" style="margin-top:10px">
       <span class="pill ok">서버 전송 없음</span>
@@ -124,11 +126,6 @@ option{background:#0b1220;color:#e5e7eb}
         <div class="divider"></div>
 
         <div class="accHint">①~③ 제목(번호)을 눌러 펼친 뒤 값을 입력하세요.</div>
-
-        <div id="settingsSummary" class="summaryBox" style="display:none;">
-          <div class="t">현재 설정 요약</div>
-          <div class="l" id="settingsSummaryLines">-</div>
-        </div>
 
         <!-- ① 기본 설정 (초기: 닫힘) -->
         <details class="acc">
@@ -254,6 +251,12 @@ option{background:#0b1220;color:#e5e7eb}
         <section class="card">
           <h2 class="panelTitle">📊 기본 통계</h2>
           <div id="stats" class="small">엑셀을 선택하면 통계/미리보기가 표시됩니다.</div>
+        </section>
+
+        <!-- 현재 설정 요약 (기본 통계 ↔ 미리보기 사이) -->
+        <section class="card" id="settingsSummary" style="display:none;">
+          <h2 class="panelTitle">🧾 현재 설정 요약</h2>
+          <div class="small" id="settingsSummaryLines">-</div>
         </section>
 
         <section class="card">
