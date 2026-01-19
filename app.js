@@ -164,6 +164,9 @@ console.log('class-assign webapp v3.4.2 loaded');
   const previewTableEl = document.getElementById("previewTable");
   const nextStepsCard = document.getElementById("nextStepsCard");
 
+  const settingsSummaryBox = document.getElementById("settingsSummary");
+  const settingsSummaryLines = document.getElementById("settingsSummaryLines");
+
   const classCountEl = document.getElementById("classCount");
   const iterationsEl = document.getElementById("iterations");
   const seedEl = document.getElementById("seed");
@@ -220,6 +223,45 @@ console.log('class-assign webapp v3.4.2 loaded');
   [wAcad,wPeer,wParent,wMulti].filter(Boolean).forEach(el=>el.addEventListener("input", syncWeights));
   syncWeights();
 
+  function labelOfSelect(el){
+    try{
+      if (!el) return "-";
+      const opt = el.options && el.selectedIndex >= 0 ? el.options[el.selectedIndex] : null;
+      return opt ? String(opt.textContent || opt.value || "-").trim() : String(el.value || "-");
+    }catch(_){ return String(el?.value || "-"); }
+  }
+
+  function renderSettingsSummary(){
+    if (!settingsSummaryBox || !settingsSummaryLines) return;
+    const cc = classCountEl ? String(classCountEl.value||"") : "-";
+    const it = iterationsEl ? String(iterationsEl.value||"") : "-";
+    const sd = seedEl ? String(seedEl.value||"") : "-";
+
+    const sm = labelOfSelect(specialModeEl);
+    const mm = labelOfSelect(multiModeEl);
+    const ad = labelOfSelect(adhdCapEl);
+    const sep = labelOfSelect(sepStrengthEl);
+    const care = labelOfSelect(careStrengthEl);
+
+    const lines = [
+      `• 반 ${cc}개 · 시뮬레이션 ${it}회 · 시드 ${sd}`,
+      `• 특수 ${sm} · 다문화 ${mm} · ADHD ${ad}`,
+      `• 분리 ${sep} · 배려 ${care}`,
+    ];
+
+    settingsSummaryLines.innerHTML = lines.map(s=>escapeHtml(s)).join("<br/>");
+    settingsSummaryBox.style.display = "";
+  }
+
+  // 설정 변화 시 요약 갱신
+  [classCountEl, iterationsEl, seedEl, specialModeEl, multiModeEl, adhdCapEl, sepStrengthEl, careStrengthEl, wAcad, wPeer, wParent, wMulti]
+    .filter(Boolean)
+    .forEach(el=>{
+      el.addEventListener("change", renderSettingsSummary);
+      el.addEventListener("input", renderSettingsSummary);
+    });
+  renderSettingsSummary();
+
   function showOverlay(on, msg){
     overlay.style.display = on ? "flex" : "none";
     if (msg) progressTxt.textContent = msg;
@@ -253,12 +295,14 @@ console.log('class-assign webapp v3.4.2 loaded');
 
   // ----- Icon helpers (UI only) -----
   const ICONS = {
+    special: "🧩",
     multi: "🌏",
     adhd: "🧠",
     sep: "🔗",
     care: "🤝",
   };
   const ICON_COL_MAP = {
+    "특수여부": { kind: "special", label: "특수" },
     "다문화여부": { kind: "multi", label: "다문화" },
     "ADHD여부": { kind: "adhd", label: "ADHD" },
     "분리요청학생": { kind: "sep", label: "분리" },
@@ -272,7 +316,7 @@ console.log('class-assign webapp v3.4.2 loaded');
   function cellWithIcon(colName, value){
     const m = ICON_COL_MAP[colName];
     if(!m) return safeString(value);
-    if (m.kind === 'multi' || m.kind === 'adhd'){
+    if (m.kind === 'multi' || m.kind === 'adhd' || m.kind === 'special'){
       return ynTo01(value) ? ICONS[m.kind] : "";
     }
     // sep/care: any valid code -> icon
