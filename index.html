@@ -87,7 +87,8 @@ option{background:#0b1220;color:#e5e7eb}
       <aside class="card" style="position:sticky; top:120px;">
         <h2 class="panelTitle">⚙️ 설정</h2>
         <label>학생 데이터 엑셀(.xlsx)</label>
-        <input id="fileInput" type="file" accept=".xlsx" />
+        <label for="fileInput" class="btnSecondary" style="display:block;text-align:center;cursor:pointer">파일 업로드</label>
+        <input id="fileInput" type="file" accept=".xlsx" style="display:none" />
         <div style="margin-top:10px">
           <a href="template.xlsx" download="반배정_양식_샘플(토글적용).xlsx" style="display:block;text-decoration:none">
             <button type="button" class="btnSecondary">샘플 양식 다운로드</button>
@@ -100,14 +101,13 @@ option{background:#0b1220;color:#e5e7eb}
         <input id="classCount" type="number" min="2" max="30" value="10" />
         <div class="divider"></div>
 
-        <label>2. 시뮬레이션 횟수(클수록 더 균형 / 느려질 수 있음)</label>
+        <label>2. 시뮬레이션 횟수<br/><span class='desc'>(클수록 더 균형 / 느려질 수 있음)</span></label>
         <input id="iterations" type="number" min="200" max="60000" step="200" value="8000" />
         <div class="small">* 250명/10반 기준: 8,000~20,000 추천</div>
 
         <div class="divider"></div>
 
-        <label>3. 배정 기준값
-<span class='desc'>(같은 기준값을 쓰면 결과가 그대로 유지됩니다.)</span></label>
+        <label>3. 배정 기준값<br/><span class='desc'>(같은 기준값을 쓰면 결과가 그대로 유지됩니다.)</span></label>
         <input id="seed" type="number" min="0" max="999999" value="42" />
 
         <div class="divider"></div>
