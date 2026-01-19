@@ -156,6 +156,7 @@ console.log('class-assign webapp v3.4.2 loaded');
 
   // ----- DOM refs -----
   const fileInput = document.getElementById("fileInput");
+  const fileBtn = document.getElementById("fileBtn");
   const filePill = document.getElementById("filePill");
   const rowsPill = document.getElementById("rowsPill");
   const errorsDiv = document.getElementById("errors");
@@ -180,6 +181,12 @@ console.log('class-assign webapp v3.4.2 loaded');
   const multiModeEl = document.getElementById("multiMode");
   const runBtn = document.getElementById("runBtn");
   const overlay = document.getElementById("overlay");
+
+  // 파일 업로드 버튼(숨겨진 input 트리거)
+  fileBtn?.addEventListener("click", (e)=>{
+    try{ e?.preventDefault?.(); e?.stopPropagation?.(); }catch(err){}
+    try{ fileInput?.click?.(); }catch(err){}
+  });
 
   // ----- Tab UI -----
   const tabSetupBtn = document.getElementById("tabSetup");
