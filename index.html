@@ -13,29 +13,35 @@
     .sub{margin-top:6px;color:var(--muted);font-size:13px;line-height:1.4}
     .sub .flow{color:var(--desc)}
     .sub .privacy{color:var(--subtle)}
+
+    /* Header help (v4.1: 첫 화면 안내 최소화) */
+    details.headerHelp > summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px;font-weight:600;}
+    details.headerHelp > summary::-webkit-details-marker{display:none;}
+    details.headerHelp > summary .more{color:var(--muted);font-weight:500;font-size:12px;}
+    .headerHelpBody{margin-top:6px;}
     .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .pill{font-size:12px;border:1px solid rgba(255,255,255,.14);padding:6px 10px;border-radius:999px;color:var(--muted);}
     .pill.ok{border-color:rgba(61,220,151,.55);color:#c9ffe9}
     .pill.warn{border-color:rgba(255,107,107,.55);color:#ffd7d7}
     .tabs{display:flex;gap:8px;margin-top:12px}
-    .tabBtn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--text);padding:8px 12px;border-radius:999px;cursor:pointer;font-weight:800}
+    .tabBtn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--text);padding:8px 12px;border-radius:999px;cursor:pointer;font-weight:700}
     .tabBtn.active{background:var(--accent);color:#071022;border-color:transparent}
     .app{display:grid;grid-template-columns:340px 1fr;gap:14px;align-items:start}
     @media (max-width: 980px){ .app{grid-template-columns:1fr;} }
     .card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px;box-shadow:0 8px 24px rgba(0,0,0,.25);}
     .panelTitle{font-size:14px;margin:0 0 10px 0;}
-    .divider{height:1px;background:rgba(255,255,255,.08);margin:12px 0;}
+    .divider{height:1px;background:rgba(255,255,255,.08);margin:10px 0;}
     label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
-    /* Setup panel readability (라벨이 더 크고, 입력값은 한 단계 작게) */
-    #setupTab aside.card label{font-size:16px; line-height:1.25; font-weight:900; color:var(--text); opacity:.95;}
+    /* Setup panel readability (v4.1: 웨이트/간격 미세 조정) */
+    #setupTab aside.card label{font-size:15px; line-height:1.25; font-weight:600; color:var(--text); opacity:.92; margin-bottom:6px;}
     #setupTab aside.card input[type=file],
     #setupTab aside.card input[type=number],
     #setupTab aside.card select{font-size:14px;}
 
     /* 설정 요약 박스 */
     .summaryBox{margin:10px 0 6px 0; padding:10px 12px; border:1px solid rgba(255,255,255,.10); border-radius:12px; background:rgba(255,255,255,.03);}
-    .summaryBox .t{font-weight:900; margin-bottom:6px;}
-    .summaryBox .l{font-size:13px; color:var(--muted); line-height:1.35;}
+    .summaryBox .t{font-weight:600; margin-bottom:6px;}
+    .summaryBox .l{font-size:12px; color:var(--muted); line-height:1.4;}
 
     /* 실행 버튼 하단 고정(설정 패널 내) */
     .stickyRun{position:sticky; bottom:0; padding-top:10px; background:linear-gradient(to bottom, rgba(18,26,51,0), rgba(18,26,51,.92) 22%, rgba(18,26,51,.98)); border-top:1px solid rgba(255,255,255,.08); margin-top:10px;}
@@ -54,7 +60,12 @@ option{background:#0b1220;color:#e5e7eb}
     button{background:var(--accent);border:none;color:#071022;padding:11px 12px;border-radius:12px;font-weight:900;cursor:pointer;width:100%}
     .btnSecondary{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);color:var(--text)}
     button:disabled{opacity:.4;cursor:not-allowed}
-    .small{font-size:12px;color:var(--muted)}
+    .small{font-size:12px;color:var(--muted);line-height:1.45;font-weight:400}
+
+    /* 도움말(기본 숨김/토글) */
+    .helpText{display:none;margin-top:6px;color:var(--muted);opacity:.78;font-size:12px;line-height:1.45}
+    .miniHelp{appearance:none;border:0;background:transparent;color:var(--muted);opacity:.85;font-size:12px;font-weight:500;cursor:pointer;padding:0 0 0 6px;}
+    .miniHelp:hover{opacity:1;text-decoration:underline;}
     .danger{color:var(--danger)}
     .overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:100;}
     .overlay .box{background:var(--card);border:1px solid rgba(255,255,255,.14);padding:16px;border-radius:14px;max-width:520px;width:calc(100% - 28px);}
@@ -70,18 +81,18 @@ option{background:#0b1220;color:#e5e7eb}
     a{color:#b9c9ff}
 
     /* Accordion (설정 섹션 접기) */
-    .acc{border:1px solid rgba(255,255,255,.10);border-radius:14px;background:rgba(255,255,255,.03);padding:10px 12px;margin:10px 0;}
+    .acc{border:1px solid rgba(255,255,255,.10);border-radius:14px;background:rgba(255,255,255,.03);padding:10px 12px;margin:8px 0;}
     /* 섹션 제목(기본 설정/학업·관계·민원·다문화 설정 등) 가독성 강화 */
-    .acc > summary{cursor:pointer;list-style:none;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;font-weight:900;font-size:18px;color:var(--titleAccent);}
+    .acc > summary{cursor:pointer;list-style:none;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;font-weight:600;font-size:17px;color:var(--titleAccent);padding:2px 0;}
     .acc > summary::-webkit-details-marker{display:none;}
-    .acc > summary .subline{display:block;font-weight:700;color:var(--muted);font-size:13px;margin-top:4px;}
+    .acc > summary .subline{display:block;font-weight:500;color:var(--muted);font-size:12px;margin-top:4px;}
     /* 토글(화살표)을 더 크게/눈에 띄게 */
     .acc > summary::after{content:"▾";opacity:.95;margin-top:2px;font-size:18px;transition:transform .15s ease;color:var(--titleAccent);}
     details[open].acc > summary::after{transform:rotate(90deg)}
     .accInner{padding-top:10px;}
 
     /* Accordion 사용 안내 문구 */
-    .accHint{font-size:16px;line-height:1.35;color:var(--text);font-weight:900;opacity:.95;}
+    .accHint{font-size:14px;line-height:1.35;color:var(--text);font-weight:600;opacity:.92;}
 
     /* File upload button */
     .fileInputHidden{position:absolute;left:-9999px;width:1px;height:1px;opacity:0;}
@@ -92,8 +103,16 @@ option{background:#0b1220;color:#e5e7eb}
   <div class="wrap">
     <h1>📘 반배정 도우미 (브라우저 전용)</h1>
     <div class="sub">
-      <div class="flow">① <b>샘플 양식</b>에 학생 정보를 입력 → ② 엑셀(.xlsx) 업로드 → ③ 설정(반 개수/가중치/분리·배려 강도) → ④ <b>반배정 실행</b> → ⑤ 결과 확인/엑셀 다운로드</div>
-      <div class="privacy">🔐 <b>모든 처리는 내 브라우저에서만</b> 이루어지며, 업로드한 파일과 데이터는 <b>어떤 서버로도 전송되지 않습니다</b>.</div>
+      <details class="headerHelp">
+        <summary>
+          <span class="flow">사용 순서: 설정 → 실행 → 결과 확인</span>
+          <span class="more">(자세히)</span>
+        </summary>
+        <div class="headerHelpBody">
+          <div class="flow">① <b>샘플 양식</b>에 학생 정보를 입력 → ② 엑셀(.xlsx) 업로드 → ③ 설정(반 개수/가중치/분리·배려 강도) → ④ <b>반배정 실행</b> → ⑤ 결과 확인/엑셀 다운로드</div>
+          <div class="privacy">🔐 <b>모든 처리는 내 브라우저에서만</b> 이루어지며, 업로드한 파일과 데이터는 <b>어떤 서버로도 전송되지 않습니다</b>.</div>
+        </div>
+      </details>
     </div>
     <div class="row" style="margin-top:10px">
       <span class="pill ok">서버 전송 없음</span>
@@ -126,6 +145,12 @@ option{background:#0b1220;color:#e5e7eb}
         <div class="divider"></div>
 
         <div class="accHint">①~③ 제목(번호)을 눌러 펼친 뒤 값을 입력하세요.</div>
+
+        <!-- 현재 설정 요약 (v4.1: 왼쪽 설정 패널 고정) -->
+        <div class="summaryBox" id="settingsSummary">
+          <div class="t">🧾 현재 설정 요약</div>
+          <div class="l" id="settingsSummaryLines">-</div>
+        </div>
 
         <!-- ① 기본 설정 (초기: 닫힘) -->
         <details class="acc">
@@ -192,7 +217,9 @@ option{background:#0b1220;color:#e5e7eb}
             </span>
           </summary>
           <div class="accInner">
-            <label>5. <strong style='font-size:1.05em'>ADHD 반당 최대 인원</strong>(제한)</label>
+            <label>5. <strong style='font-size:1.05em'>ADHD 반당 최대 인원</strong>(제한)
+              <button type="button" class="miniHelp" data-help="help_adhdCap">자세히</button>
+            </label>
             <select id="adhdCap">
               <option value="auto" selected>자동(제한 없음 · 균등 분산 우선)</option>
               <option value="1">1명</option>
@@ -201,24 +228,28 @@ option{background:#0b1220;color:#e5e7eb}
               <option value="4">4명</option>
               <option value="5">5명</option>
             </select>
-            <div class="small" style="margin-top:8px">* 제한을 너무 낮게 잡으면, 가능한 한 지키되 여건상 일부 초과될 수 있습니다.</div>
+            <div class="helpText" id="help_adhdCap">* 제한을 너무 낮게 잡으면, 가능한 한 지키되 여건상 일부 초과될 수 있습니다.</div>
 
-            <label>5-2. <strong style='font-size:1.05em'>특수학생 배정</strong>(3단계)</label>
+            <label>5-2. <strong style='font-size:1.05em'>특수학생 배정</strong>(3단계)
+              <button type="button" class="miniHelp" data-help="help_special">자세히</button>
+            </label>
             <select id="specialMode">
               <option value="off">미적용</option>
               <option value="medium" selected>보통 (가급적 반별 균등 분산)</option>
               <option value="strong">강 (가능한 한 균등 분산)</option>
             </select>
-            <div class="small" style="margin-top:8px">* 엑셀에 <b>특수여부</b> 열이 있으면 Y/N로 인식합니다. (없으면 모두 N으로 처리)</div>
+            <div class="helpText" id="help_special">* 엑셀에 <b>특수여부</b> 열이 있으면 Y/N로 인식합니다. (없으면 모두 N으로 처리)</div>
             <div class="divider"></div>
 
-            <label>6. <strong style='font-size:1.05em'>다문화학생 배정</strong>(3단계)</label>
+            <label>6. <strong style='font-size:1.05em'>다문화학생 배정</strong>(3단계)
+              <button type="button" class="miniHelp" data-help="help_multi">자세히</button>
+            </label>
             <select id="multiMode">
               <option value="off" selected>미적용</option>
               <option value="medium">보통 (가급적 반별 균등 분산)</option>
               <option value="strong">강 (가능한 한 균등 분산)</option>
             </select>
-            <div class="small" style="margin-top:8px">* 엑셀에 <b>다문화여부</b> 열이 있으면 Y/N로 인식합니다. (없으면 모두 N으로 처리)</div>
+            <div class="helpText" id="help_multi">* 엑셀에 <b>다문화여부</b> 열이 있으면 Y/N로 인식합니다. (없으면 모두 N으로 처리)</div>
             <div class="divider"></div>
 
             <label>7. <strong style='font-size:1.05em'>분리요청 강도</strong>(같은 반이 되면 안 됨)</label>
@@ -251,12 +282,6 @@ option{background:#0b1220;color:#e5e7eb}
         <section class="card">
           <h2 class="panelTitle">📊 기본 통계</h2>
           <div id="stats" class="small">엑셀을 선택하면 통계/미리보기가 표시됩니다.</div>
-        </section>
-
-        <!-- 현재 설정 요약 (기본 통계 ↔ 미리보기 사이) -->
-        <section class="card" id="settingsSummary" style="display:none;">
-          <h2 class="panelTitle">🧾 현재 설정 요약</h2>
-          <div class="small" id="settingsSummaryLines">-</div>
         </section>
 
         <section class="card">

@@ -186,6 +186,24 @@ console.log('class-assign webapp v3.4.2 loaded');
   const runBtn = document.getElementById("runBtn");
   const overlay = document.getElementById("overlay");
 
+  // ----- Help toggles (v4.1: 설명은 기본 숨김, 필요 시 '자세히') -----
+  (function initHelpToggles(){
+    try{
+      const btns = Array.from(document.querySelectorAll("button.miniHelp[data-help]"));
+      btns.forEach((btn)=>{
+        btn.addEventListener("click", (e)=>{
+          try{ e?.preventDefault?.(); e?.stopPropagation?.(); }catch(_){ }
+          const id = btn.getAttribute("data-help");
+          if (!id) return;
+          const box = document.getElementById(id);
+          if (!box) return;
+          const isShown = (box.style.display === "block");
+          box.style.display = isShown ? "none" : "block";
+        });
+      });
+    }catch(_){ }
+  })();
+
   // 파일 업로드 버튼(숨겨진 input 트리거)
   fileBtn?.addEventListener("click", (e)=>{
     try{ e?.preventDefault?.(); e?.stopPropagation?.(); }catch(err){}
