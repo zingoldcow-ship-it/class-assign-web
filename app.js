@@ -161,6 +161,7 @@ console.log('class-assign webapp v3.4.2 loaded');
   const errorsDiv = document.getElementById("errors");
   const statsDiv = document.getElementById("stats");
   const previewTableEl = document.getElementById("previewTable");
+  const nextStepsCard = document.getElementById("nextStepsCard");
 
   const classCountEl = document.getElementById("classCount");
   const iterationsEl = document.getElementById("iterations");
@@ -241,6 +242,35 @@ console.log('class-assign webapp v3.4.2 loaded');
 
 
   function safeString(x){ return (x===null||x===undefined) ? "" : String(x).trim(); }
+
+  // ----- Icon helpers (UI only) -----
+  const ICONS = {
+    multi: "🌏",
+    adhd: "🧠",
+    sep: "🔗",
+    care: "🤝",
+  };
+  const ICON_COL_MAP = {
+    "다문화여부": { kind: "multi", label: "다문화" },
+    "ADHD여부": { kind: "adhd", label: "ADHD" },
+    "분리요청학생": { kind: "sep", label: "분리" },
+    "배려요청학생": { kind: "care", label: "배려" },
+  };
+  function headerWithIcon(colName){
+    const m = ICON_COL_MAP[colName];
+    if(!m) return colName;
+    return `${ICONS[m.kind]} ${m.label}`;
+  }
+  function cellWithIcon(colName, value){
+    const m = ICON_COL_MAP[colName];
+    if(!m) return safeString(value);
+    if (m.kind === 'multi' || m.kind === 'adhd'){
+      return ynTo01(value) ? ICONS[m.kind] : "";
+    }
+    // sep/care: any valid code -> icon
+    const codes = splitCodes(value);
+    return (codes.length > 0) ? ICONS[m.kind] : "";
+  }
   function ynTo01(x){
     const v = safeString(x).toUpperCase();
     if (v === "Y" || v === "1" || v === "TRUE") return 1;
@@ -274,7 +304,7 @@ console.log('class-assign webapp v3.4.2 loaded');
     const trh = document.createElement("tr");
     for (const c of cols){
       const th = document.createElement("th");
-      th.textContent = c;
+      th.textContent = headerWithIcon(c);
       trh.appendChild(th);
     }
     thead.appendChild(trh);
@@ -285,7 +315,7 @@ console.log('class-assign webapp v3.4.2 loaded');
       const tr = document.createElement("tr");
       for (const c of cols){
         const td = document.createElement("td");
-        td.textContent = safeString(r[c]);
+        td.textContent = cellWithIcon(c, r[c]);
         tr.appendChild(td);
       }
       tbody.appendChild(tr);
@@ -748,6 +778,7 @@ console.log('class-assign webapp v3.4.2 loaded');
     const file = e.target.files?.[0];
     if (!file){
       filePill.textContent = "엑셀 미선택";
+      try{ if(nextStepsCard) nextStepsCard.style.display = "none"; }catch(e){}
       setRunEnabled(false);
       return;
     }
@@ -787,6 +818,7 @@ console.log('class-assign webapp v3.4.2 loaded');
       rowsPill.textContent = `${studentRows.length}명`;
       renderSetupPreviewTable(rawRows, 20);
       summarize(studentRows);
+      try{ if(nextStepsCard) nextStepsCard.style.display = ""; }catch(e){}
       statusPill.textContent = missingStd.length ? `엑셀 로드됨(권장열 누락: ${missingStd.join(', ')})` : "엑셀 로드됨";
       setRunEnabled(!!(studentRows && studentRows.length>0));
     } catch(err){
@@ -1137,7 +1169,7 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
       const trh = document.createElement("tr");
       for (const c of cols){
         const th = document.createElement("th");
-        th.textContent = c;
+        th.textContent = headerWithIcon(c);
         trh.appendChild(th);
       }
       thead.appendChild(trh);
@@ -1148,7 +1180,7 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
         const tr = document.createElement("tr");
         for (const c of cols){
           const td = document.createElement("td");
-          td.textContent = (r[c]===null||r[c]===undefined) ? "" : String(r[c]);
+          td.textContent = cellWithIcon(c, r[c]);
           tr.appendChild(td);
         }
         tbody.appendChild(tr);

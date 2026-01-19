@@ -87,8 +87,7 @@ option{background:#0b1220;color:#e5e7eb}
       <aside class="card" style="position:sticky; top:120px;">
         <h2 class="panelTitle">⚙️ 설정</h2>
         <label>학생 데이터 엑셀(.xlsx)</label>
-        <label for="fileInput" class="btnSecondary" style="display:block;text-align:center;cursor:pointer">파일 업로드</label>
-        <input id="fileInput" type="file" accept=".xlsx" style="display:none" />
+        <input id="fileInput" type="file" accept=".xlsx" />
         <div style="margin-top:10px">
           <a href="template.xlsx" download="반배정_양식_샘플(토글적용).xlsx" style="display:block;text-decoration:none">
             <button type="button" class="btnSecondary">샘플 양식 다운로드</button>
@@ -101,13 +100,13 @@ option{background:#0b1220;color:#e5e7eb}
         <input id="classCount" type="number" min="2" max="30" value="10" />
         <div class="divider"></div>
 
-        <label>2. 시뮬레이션 횟수<br/><span class='desc'>(클수록 더 균형 / 느려질 수 있음)</span></label>
+        <label>2. 시뮬레이션 횟수(클수록 더 균형 / 느려질 수 있음)</label>
         <input id="iterations" type="number" min="200" max="60000" step="200" value="8000" />
         <div class="small">* 250명/10반 기준: 8,000~20,000 추천</div>
 
         <div class="divider"></div>
 
-        <label>3. 배정 기준값<br/><span class='desc'>(같은 기준값을 쓰면 결과가 그대로 유지됩니다.)</span></label>
+        <label>3. 랜덤 시드(같은 값이면 같은 결과)</label>
         <input id="seed" type="number" min="0" max="999999" value="42" />
 
         <div class="divider"></div>
@@ -191,9 +190,19 @@ option{background:#0b1220;color:#e5e7eb}
 
         <section class="card">
           <h2 class="panelTitle">🔎 미리보기(상위 20명)</h2>
+          <div id="legendPreview" class="small" style="opacity:0.9; margin-top:-4px; margin-bottom:6px;">아이콘 안내: 🌏 다문화 │ 🧠 ADHD │ 🔗 분리요청 │ 🤝 배려요청</div>
           <div id="errors" class="small danger"></div>
           <div style="overflow:auto; max-height: 420px;">
             <table id="previewTable"></table>
+          </div>
+        </section>
+
+        <section class="card" id="nextStepsCard" style="display:none;">
+          <h2 class="panelTitle">👉 다음 단계</h2>
+          <div class="small" id="nextStepsTxt">
+            ① 반 개수를 확인합니다.<br/>
+            ② 가중치를 기본값 그대로 사용하거나 필요 시 조정합니다.<br/>
+            ③ <b>반배정 실행</b> 버튼을 눌러 결과 탭에서 확인합니다.
           </div>
         </section>
 
@@ -286,11 +295,13 @@ option{background:#0b1220;color:#e5e7eb}
 
       <section class="card">
         <h2 class="panelTitle">📋 배정표</h2>
+        <div id="legendResult" class="small" style="opacity:0.9; margin-top:-4px; margin-bottom:6px;">아이콘 안내: 🌏 다문화 │ 🧠 ADHD │ 🔗 분리요청 │ 🤝 배려요청</div>
         <div class="row" style="margin-bottom:10px;">
           <label class="small">반 필터</label>
           <select id="classFilter"></select>
           <span class="small" id="tableMeta"></span>
         </div>
+        <div id="legendResult" class="small" style="opacity:0.9; margin-top:-6px; margin-bottom:10px;">아이콘 안내: 🌏 다문화 │ 🧠 ADHD │ 🔗 분리요청 │ 🤝 배려요청</div>
         <div style="overflow:auto; max-height: 560px;">
           <table id="resultTable"></table>
         </div>
@@ -333,7 +344,7 @@ option{background:#0b1220;color:#e5e7eb}
       if(inp){
         inp.addEventListener('change', function(){
           if(fp) fp.textContent = inp.files && inp.files[0] ? inp.files[0].name : '엑셀 미선택';
-          setStatus('파일 업로드됨');
+          setStatus('파일 선택됨');
         });
       }
       // CDN 로드 체크(5초 후)
