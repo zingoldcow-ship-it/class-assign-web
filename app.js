@@ -184,31 +184,37 @@ console.log('class-assign webapp v3.4.2 loaded');
   const specialModeEl = document.getElementById("specialMode");
   const multiModeEl = document.getElementById("multiMode");
   const runBtn = document.getElementById("runBtn");
-  const overlay = document.getElementById("overlay");
 
-  // ----- Help toggles (v4.1: 설명은 기본 숨김, 필요 시 '자세히') -----
-  (function initHelpToggles(){
-    try{
-      const btns = Array.from(document.querySelectorAll("button.miniHelp[data-help]"));
-      btns.forEach((btn)=>{
-        btn.addEventListener("click", (e)=>{
-          try{ e?.preventDefault?.(); e?.stopPropagation?.(); }catch(_){ }
-          const id = btn.getAttribute("data-help");
-          if (!id) return;
-          const box = document.getElementById(id);
-          if (!box) return;
-          const isShown = (box.style.display === "block");
-          box.style.display = isShown ? "none" : "block";
-        });
+  // ----- Help toggle (v4.1.1) -----
+  function setupHelpToggles(){
+    const btns = document.querySelectorAll(".helpBtn[data-help]");
+    btns.forEach((btn)=>{
+      btn.addEventListener("click", ()=>{
+        const id = btn.getAttribute("data-help");
+        if(!id) return;
+        const el = document.getElementById(id);
+        if(!el) return;
+        const isHidden = el.hasAttribute("hidden");
+        if(isHidden){
+          el.removeAttribute("hidden");
+          btn.classList.add("open");
+        }else{
+          el.setAttribute("hidden","");
+          btn.classList.remove("open");
+        }
       });
-    }catch(_){ }
-  })();
+    });
+  }
+
+  const overlay = document.getElementById("overlay");
 
   // 파일 업로드 버튼(숨겨진 input 트리거)
   fileBtn?.addEventListener("click", (e)=>{
     try{ e?.preventDefault?.(); e?.stopPropagation?.(); }catch(err){}
     try{ fileInput?.click?.(); }catch(err){}
   });
+
+    setupHelpToggles();
 
   // ----- Tab UI -----
   const tabSetupBtn = document.getElementById("tabSetup");
