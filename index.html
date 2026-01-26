@@ -14,8 +14,9 @@
     .sub .flow{color:var(--desc)}
     .sub .privacy{color:var(--subtle)}
     .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .pill{font-size:12px;border:1px solid rgba(15,23,42,.14);padding:6px 10px;border-radius:999px;color:var(--muted);}
-    .pill.ok{border-color:rgba(61,220,151,.55);color:#c9ffe9}
+    .pill{font-size:12px;border:1px solid rgba(15,23,42,.14);padding:6px 10px;border-radius:999px;color:var(--muted);background:rgba(15,23,42,.02)}
+    .pill.ok{border-color:rgba(34,197,94,.45);background:rgba(34,197,94,.12);color:var(--text)}
+    .pill.total{border-color:rgba(37,99,235,.35);background:rgba(37,99,235,.10);color:var(--text)}
     .pill.warn{border-color:rgba(255,107,107,.55);color:#ffd7d7}
     .tabs{display:flex;gap:8px;margin-top:12px}
     .tabBtn{background:rgba(15,23,42,.06);border:1px solid rgba(15,23,42,.12);color:var(--text);padding:8px 12px;border-radius:999px;cursor:pointer;font-weight:800}
@@ -38,15 +39,14 @@
     .summaryBox .l{font-size:13px; color:var(--muted); line-height:1.35;}
 
     /* 실행 버튼 하단 고정(설정 패널 내) */
-    .stickyRun{position:sticky; bottom:0; padding-top:10px; background:linear-gradient(to bottom, rgba(18,26,51,0), rgba(18,26,51,.92) 22%, rgba(18,26,51,.98)); border-top:1px solid rgba(15,23,42,.08); margin-top:10px;}
-    .stickyRun .tip{font-size:12px; color:var(--muted); margin-top:8px;}
+    .stickyRun{position:sticky; bottom:0; padding-top:10px; background:linear-gradient(to bottom, rgba(246,247,251,0), rgba(246,247,251,.92) 22%, rgba(246,247,251,.98)); border-top:1px solid rgba(15,23,42,.08); margin-top:10px;}
+    .stickyRun .tip{font-size:12px; color:#111827; margin-top:8px; background:rgba(254, 249, 195, 1); border:1px solid rgba(245, 158, 11, .55); padding:8px 10px; border-radius:12px;}
 
 
 
 
-    input[type=file],input[type=number],select{width:100%;background:#0b1220;color:#e5e7eb;border:1px solid rgba(15,23,42,.12);border-radius:12px;padding:10px 12px;outline:none}
-select:focus{border-color:rgba(96,165,250,.8)}
-option{background:#0b1220;color:#e5e7eb}
+    select:focus{border-color:rgba(96,165,250,.8)}
+    option{background:#ffffff;color:var(--text)}
     input[type=file]{padding:10px;border-radius:12px;border:1px dashed rgba(15,23,42,.18);background:rgba(15,23,42,.03);color:var(--text)}
     input[type=number],select{padding:10px;border-radius:12px;border:1px solid rgba(15,23,42,.12);background:rgba(15,23,42,.03);color:var(--text)}
     input[type=range]{width:100%;accent-color:var(--accent)}
@@ -62,12 +62,18 @@ option{background:#0b1220;color:#e5e7eb}
     @keyframes spin{to{transform:rotate(360deg)}}
     table{width:100%;border-collapse:collapse;font-size:12px}
     th,td{border-bottom:1px solid var(--border);padding:8px 6px;text-align:left;white-space:nowrap}
-    th{color:var(--muted);font-weight:600;position:sticky;top:0;background:rgba(18,26,51,.96)}
+    th{color:var(--text);font-weight:800;position:sticky;top:0;background:rgba(253,230,138,.55)}
     .chartGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
     @media (max-width: 980px){ .chartGrid{grid-template-columns:1fr;} }
     .chartBox{height:260px;position:relative}
     canvas{width:100% !important;height:100% !important;display:block}
-    a{color:#b9c9ff}
+    a{color:var(--accent)}
+
+    /* Header home button */
+    .headerTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+    .homeBtn{display:inline-flex;align-items:center;gap:8px;background:rgba(37,99,235,.10);border:1px solid rgba(37,99,235,.25);color:var(--text);padding:8px 10px;border-radius:999px;cursor:pointer;font-weight:900;}
+    .homeBtn:hover{background:rgba(37,99,235,.14)}
+    .homeIcon{width:16px;height:16px;display:inline-block}
 
     /* Accordion (설정 섹션 접기) */
     .acc{border:1px solid rgba(15,23,42,.10);border-radius:14px;background:rgba(15,23,42,.03);padding:10px 12px;margin:10px 0;}
@@ -130,6 +136,13 @@ option{background:#0b1220;color:#e5e7eb}
     .guideList li{margin:10px 0;line-height:1.5;}
     .btnRow{display:flex;gap:10px;flex-wrap:wrap;}
 
+    /* Intro sections to reduce "all text" feel */
+    .introSection{padding:12px;border:1px solid rgba(15,23,42,.10);background:rgba(15,23,42,.02);border-radius:12px;margin-top:12px}
+    .introSection .panelTitle{margin:0 0 6px 0;font-size:14px}
+
+    /* Note box (high contrast on light UI) */
+    .noteBox{padding:10px 12px;border-radius:12px;background:rgba(254,249,195,1);border:1px solid rgba(245,158,11,.45);color:#111827;}
+
   </style>
 </head>
 <body>
@@ -145,12 +158,22 @@ option{background:#0b1220;color:#e5e7eb}
 
 <header id="headerApp" style="display:none;">
   <div class="wrap">
-    <h1>📘 반배정 도우미</h1>
-    <div class="row" style="margin-top:10px">
-      <span class="pill ok">서버 전송 없음</span>
-      <span class="pill" id="filePill">엑셀 미선택</span>
-      <span class="pill" id="rowsPill">0명</span>
-      <span class="pill" id="statusPill">대기</span>
+    <div class="headerTop">
+      <div>
+        <h1>📘 반배정 도우미</h1>
+        <div class="row" style="margin-top:10px">
+          <span class="pill ok">서버 전송 없음</span>
+          <span class="pill" id="filePill">엑셀 미선택</span>
+          <span class="pill" id="rowsPill">0명</span>
+          <span class="pill" id="statusPill">대기</span>
+        </div>
+      </div>
+      <button type="button" class="homeBtn" id="homeBtn" title="홈(안내)으로">
+        <svg class="homeIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M4 10.5L12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+        </svg>
+        홈
+      </button>
     </div>
     <div class="tabs">
       <button class="tabBtn active" id="tabSetup">설정</button>
@@ -162,49 +185,46 @@ option{background:#0b1220;color:#e5e7eb}
 <main class="wrap">
   <section id="introView">
   <div class="card">
-    <h2 class="panelTitle">사용 흐름</h2>
-    <ol class="guideList">
-      <li>샘플 양식에 학생 정보를 입력</li>
-      <li>엑셀(.xlsx) 업로드</li>
-      <li>
-        설정(반 개수/가중치/분리·배려 강도)
-        <div class="small" style="margin-top:6px">
-          • <b>가중치</b>: 학업/관계/민원/다문화 등 여러 기준 중 무엇을 더 우선할지 정합니다. 값이 높을수록 해당 기준이 더 많이 반영됩니다.<br/>
-          • <b>분리 강도</b>: 분리 요청을 얼마나 강하게 지킬지 정합니다. 높을수록 같은 코드를 최대한 <b>다른 반</b>으로 배치합니다.<br/>
-          • <b>배려 강도</b>: 배려 요청을 얼마나 강하게 지킬지 정합니다. 높을수록 같은 코드를 최대한 <b>같은 반</b>으로 배치합니다.
-        </div>
-      </li>
-      <li>반배정 실행</li>
-      <li>결과 확인 및 엑셀 다운로드</li>
-    </ol>
-
-    <div class="divider"></div>
-
-    <h2 class="panelTitle">보안/개인정보</h2>
-    <div class="small">
-      🔐 모든 처리는 사용자 브라우저에서만 이루어지며, 업로드한 파일과 데이터는 어떤 서버로도 전송되지 않습니다.
+    <div class="introSection">
+      <h2 class="panelTitle">앱 사용방법</h2>
+      <ol class="guideList">
+        <li>샘플 양식에 학생 정보를 입력</li>
+        <li>실행 화면으로 이동</li>
+        <li>엑셀(.xlsx) 업로드</li>
+        <li>
+          설정(반 개수/가중치/분리·배려 강도)
+          <div class="small" style="margin-top:6px">
+            • <b>가중치</b>: 학업/관계/민원/다문화 등 여러 기준 중 무엇을 더 우선할지 정합니다. 값이 높을수록 해당 기준이 더 많이 반영됩니다.<br/>
+            • <b>분리 강도</b>: 분리요청을 얼마나 강하게 지킬지 정합니다. 높을수록 <b>분리요청을 한 학생은 가능한 한 다른 반</b>으로 배정합니다.<br/>
+            &nbsp;&nbsp;예) A학생과 B학생이 같은 분리요청 그룹이면, <b>서로 다른 반</b>이 되도록 우선합니다.<br/>
+            • <b>배려 강도</b>: 배려요청을 얼마나 강하게 지킬지 정합니다. 높을수록 <b>배려요청을 한 학생은 가능한 한 같은 반</b>으로 배정합니다.<br/>
+            &nbsp;&nbsp;예) C학생과 D학생이 같은 배려요청 그룹이면, <b>같은 반</b>이 되도록 우선합니다.
+          </div>
+        </li>
+        <li>반배정 실행</li>
+        <li>결과 확인 및 엑셀 다운로드</li>
+      </ol>
     </div>
 
-    <div class="divider"></div>
-
-    <h2 class="panelTitle">안내</h2>
-    <div class="small">
-      • 결과는 <b>“결과” 탭</b>에서 확인합니다.<br/>
-      • <b>분리요청학생</b>(예: A1): 같은 코드는 가능한 한 <b>다른 반</b>으로 배정합니다.<br/>
-      • <b>배려요청학생</b>(예: B3): 같은 코드는 가능한 한 <b>같은 반</b>으로 배정합니다.<br/>
-      • 아이콘 안내: 🧩 특수 │ 🌏 다문화 │ 🧠 ADHD │ 🔗 분리요청 │ 🤝 배려요청
+    <div class="introSection">
+      <h2 class="panelTitle">보안/개인정보</h2>
+      <div class="small">🔐 모든 처리는 사용자 브라우저에서만 이루어지며, 업로드한 파일과 데이터는 어떤 서버로도 전송되지 않습니다.</div>
     </div>
 
-    <div class="divider"></div>
+    <div class="introSection">
+      <h2 class="panelTitle">안내</h2>
+      <div class="small">• 결과는 <b>“결과” 탭</b>에서 확인합니다.<br/>• 아이콘 안내: 🧩 특수 │ 🌏 다문화 │ 🧠 ADHD │ 🔗 분리요청 │ 🤝 배려요청</div>
+    </div>
 
-    <h2 class="panelTitle">샘플 양식</h2>
-    <div class="small">처음 사용하시면 위 양식을 내려받아 <b>열 이름/형식을 유지하며 작성해주세요.</b></div>
-
-    <div class="btnRow" style="margin-top:12px">
-      <a href="template.xlsx" download="반배정_양식_샘플.xlsx" style="text-decoration:none;flex:1">
-        <button type="button" class="btnSecondary" style="width:100%">샘플 양식 다운로드</button>
-      </a>
-      <button type="button" class="btn" id="goAppBtn" style="flex:1">실행 화면으로 이동</button>
+    <div class="introSection">
+      <h2 class="panelTitle">샘플 양식</h2>
+      <div class="small">처음 사용하시면 위 양식을 내려받아 <b>열 이름/형식을 유지하며 작성해주세요.</b></div>
+      <div class="btnRow" style="margin-top:12px">
+        <a href="template.xlsx" download="반배정_양식_샘플.xlsx" style="text-decoration:none;flex:1">
+          <button type="button" class="btnSecondary" style="width:100%">샘플 양식 다운로드</button>
+        </a>
+        <button type="button" class="btn" id="goAppBtn" style="flex:1">실행 화면으로 이동</button>
+      </div>
     </div>
   </div>
 </section>
@@ -220,7 +240,7 @@ option{background:#0b1220;color:#e5e7eb}
         <input id="fileInput" class="fileInputHidden" type="file" accept=".xlsx" />
         <button id="fileBtn" type="button" class="btnSecondary">엑셀 업로드</button>
         <!-- ① 기본 설정 (초기: 닫힘) -->
-        <details class="acc">
+        <details class="acc" id="accBasic">
           <summary>
             <span>
               ① 기본 설정</span>
@@ -234,7 +254,7 @@ option{background:#0b1220;color:#e5e7eb}
             <input id="iterations" type="number" min="200" max="60000" step="200" value="8000" /><div class="divider"></div></details>
 
         <!-- ② 학업·관계·민원·다문화 설정 (기본 접힘) -->
-        <details class="acc">
+        <details class="acc" id="accWeights">
           <summary>
             <span>
               ② 학업·관계·민원·다문화 설정</span>
@@ -337,7 +357,7 @@ option{background:#0b1220;color:#e5e7eb}
 
         <div class="stickyRun">
           <button id="runBtn" type="button" disabled>반배정 실행 → 결과 탭 보기</button>
-          <div class="tip">결과가 마음에 안 들면 <b>시드</b>만 바꿔 다시 실행해 보세요.</div>
+          <div class="tip">결과가 마음에 안 들면 설정을 조금 조정하거나 다시 실행해 보세요.</div>
         </div>
       </aside>
 
@@ -399,21 +419,15 @@ option{background:#0b1220;color:#e5e7eb}
         </section>
         <section class="card">
           <h2 class="panelTitle">⚠️ 결과 리포트</h2>
-          <div class="small">
-            • <b>분리 위반</b>: 분리학생(같은 분리그룹)이 같은 반에 2명 이상 배정된 경우<br/>
-            • <b>배려 미충족</b>: 배려학생(같은 배려그룹)이 여러 반으로 나뉜 정도<br/>
-            • <b>학부모민원/학업성취/교우관계</b>: 반별로 ‘좋음/보통/나쁨’ 분포와 평균점수 편차를 요약합니다. (아래에서 <b>탭</b>으로 전환해 확인)
-          </div>
-          <div style="height:10px"></div>
           <div id="violations" class="small">-</div>
         </section>
       </section>
 
       <section class="card" id="unsatisfiedCard">
         <h2 class="panelTitle">🔍 미충족 학생 목록</h2>
-        <div class="small" style="margin-bottom:10px">
-          • <b>분리 미충족</b>은 ‘같은 분리요청학생(코드/상대학생)’이 같은 반에 함께 배정된 학생을 의미합니다.<br/>
-          • <b>배려 미충족</b>은 ‘같은 배려요청학생(코드/상대학생)’ 친구가 <b>자기 반에 1명도 없는</b> 학생을 의미합니다.
+        <div class="noteBox small" style="margin-bottom:10px">
+          • <b>분리 미충족</b>: 같은 <b>분리요청 그룹(상대학생)</b>이 같은 반에 함께 배정된 경우<br/>
+          • <b>배려 미충족</b>: 같은 <b>배려요청 그룹(상대학생)</b> 친구가 <b>자기 반에 1명도 없는</b> 경우
         </div>
         <details open>
           <summary style="cursor:pointer; font-weight:900;">분리 미충족 목록 <span class="small" id="unsatSepMeta"></span></summary>

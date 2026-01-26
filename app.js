@@ -417,7 +417,7 @@ console.log('class-assign webapp v3.4.2 loaded');
     const multiN = rows.reduce((a,r)=>a+(r.multi||0),0);
     statsDiv.innerHTML = `
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <span class="pill ok">총 ${n}명</span>
+        <span class="pill total">총 ${n}명</span>
         <span class="pill">남 ${male} · 여 ${female}</span>
         <span class="pill">특수 ${specN}</span>
         <span class="pill">ADHD ${adhdN}</span>
@@ -1449,6 +1449,7 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
   const headerIntro = document.getElementById("headerIntro");
   const headerApp = document.getElementById("headerApp");
   const goAppBtn = document.getElementById("goAppBtn");
+  const homeBtn = document.getElementById("homeBtn");
 
   function setView(view){
     const isIntro = view === "intro";
@@ -1465,6 +1466,20 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
   }
 
   if (goAppBtn) goAppBtn.addEventListener("click", ()=>{ location.hash = "#app"; });
+  if (homeBtn) homeBtn.addEventListener("click", ()=>{ location.hash = "#intro"; });
+
+  // Accordion: keep only one section open (①~③)
+  try {
+    const accs = Array.from(document.querySelectorAll("#setupTab details.acc"));
+    accs.forEach((d) => {
+      d.addEventListener("toggle", () => {
+        if (!d.open) return;
+        accs.forEach((o) => {
+          if (o !== d) o.open = false;
+        });
+      });
+    });
+  } catch (e) {}
 
   window.addEventListener("hashchange", route);
   route();
