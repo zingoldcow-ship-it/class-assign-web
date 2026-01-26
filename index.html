@@ -5,26 +5,26 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>반배정 도우미 (브라우저 전용)</title>
   <style>
-    :root{ --bg:#0b1020; --card:#121a33; --text:#e9ecf1; --muted:#a9b1c6; --accent:#7aa2ff; --danger:#ff6b6b; --ok:#3ddc97; --desc:#9fb8ff; --subtle:#9aa0a6; --titleAccent:#ffe9a6; }
+    :root{ --bg:#f6f7fb; --card:#ffffff; --text:#111827; --muted:#6b7280; --accent:#2563eb; --danger:#dc2626; --ok:#10b981; --desc:#2563eb; --subtle:#9ca3af; --titleAccent:#111827; --border:rgba(17,24,39,.12); --shadow:0 10px 30px rgba(17,24,39,.08); }
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans KR,Arial,sans-serif;background:var(--bg);color:var(--text);}
-    header{padding:16px;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;background:rgba(11,16,32,.9);backdrop-filter:blur(8px);z-index:50;}
+    header{padding:16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(246,247,251,.85);backdrop-filter:blur(10px);z-index:50;}
     .wrap{max-width:1300px;margin:0 auto;padding:14px;}
     h1{margin:0;font-size:18px;}
     .sub{margin-top:6px;color:var(--muted);font-size:13px;line-height:1.4}
     .sub .flow{color:var(--desc)}
     .sub .privacy{color:var(--subtle)}
     .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .pill{font-size:12px;border:1px solid rgba(255,255,255,.14);padding:6px 10px;border-radius:999px;color:var(--muted);}
+    .pill{font-size:12px;border:1px solid var(--border);padding:6px 10px;border-radius:999px;color:var(--muted);}
     .pill.ok{border-color:rgba(61,220,151,.55);color:#c9ffe9}
     .pill.warn{border-color:rgba(255,107,107,.55);color:#ffd7d7}
     .tabs{display:flex;gap:8px;margin-top:12px}
-    .tabBtn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--text);padding:8px 12px;border-radius:999px;cursor:pointer;font-weight:800}
+    .tabBtn{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:999px;cursor:pointer;font-weight:800}
     .tabBtn.active{background:var(--accent);color:#071022;border-color:transparent}
     .app{display:grid;grid-template-columns:340px 1fr;gap:14px;align-items:start}
     @media (max-width: 980px){ .app{grid-template-columns:1fr;} }
-    .card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px;box-shadow:0 8px 24px rgba(0,0,0,.25);}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;box-shadow:0 8px 24px rgba(0,0,0,.25);}
     .panelTitle{font-size:14px;margin:0 0 10px 0;}
-    .divider{height:1px;background:rgba(255,255,255,.08);margin:12px 0;}
+    .divider{height:1px;background:var(--border);margin:12px 0;}
     label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
     /* Setup panel readability (라벨이 더 크고, 입력값은 한 단계 작게) */
     #setupTab aside.card label{font-size:16px; line-height:1.25; font-weight:900; color:var(--text); opacity:.95;}
@@ -33,35 +33,35 @@
     #setupTab aside.card select{font-size:14px;}
 
     /* 설정 요약 박스 */
-    .summaryBox{margin:10px 0 6px 0; padding:10px 12px; border:1px solid rgba(255,255,255,.10); border-radius:12px; background:rgba(255,255,255,.03);}
+    .summaryBox{margin:10px 0 6px 0; padding:10px 12px; border:1px solid var(--border); border-radius:12px; background:rgba(255,255,255,.03);}
     .summaryBox .t{font-weight:900; margin-bottom:6px;}
     .summaryBox .l{font-size:13px; color:var(--muted); line-height:1.35;}
 
     /* 실행 버튼 하단 고정(설정 패널 내) */
-    .stickyRun{position:sticky; bottom:0; padding-top:10px; background:linear-gradient(to bottom, rgba(18,26,51,0), rgba(18,26,51,.92) 22%, rgba(18,26,51,.98)); border-top:1px solid rgba(255,255,255,.08); margin-top:10px;}
+    .stickyRun{position:sticky; bottom:0; padding-top:10px; background:linear-gradient(to bottom, rgba(18,26,51,0), rgba(18,26,51,.92) 22%, rgba(18,26,51,.98)); border-top:1px solid var(--border); margin-top:10px;}
     .stickyRun .tip{font-size:12px; color:var(--muted); margin-top:8px;}
 
 
 
 
-    input[type=file],input[type=number],select{width:100%;background:#0b1220;color:#e5e7eb;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 12px;outline:none}
+    input[type=file],input[type=number],select{width:100%;background:#0b1220;color:#e5e7eb;border:1px solid var(--border);border-radius:12px;padding:10px 12px;outline:none}
 select:focus{border-color:rgba(96,165,250,.8)}
 option{background:#0b1220;color:#e5e7eb}
-    input[type=file]{padding:10px;border-radius:12px;border:1px dashed rgba(255,255,255,.18);background:rgba(255,255,255,.03);color:var(--text)}
-    input[type=number],select{padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.03);color:var(--text)}
+    input[type=file]{padding:10px;border-radius:12px;border:1px dashed var(--border);background:rgba(255,255,255,.03);color:var(--text)}
+    input[type=number],select{padding:10px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--text)}
     input[type=range]{width:100%;accent-color:var(--accent)}
     .kv{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted);margin-top:6px}
     button{background:var(--accent);border:none;color:#071022;padding:11px 12px;border-radius:12px;font-weight:900;cursor:pointer;width:100%}
-    .btnSecondary{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);color:var(--text)}
+    .btnSecondary{background:rgba(255,255,255,.07);border:1px solid var(--border);color:var(--text)}
     button:disabled{opacity:.4;cursor:not-allowed}
     .small{font-size:12px;color:var(--muted)}
     .danger{color:var(--danger)}
     .overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:100;}
-    .overlay .box{background:var(--card);border:1px solid rgba(255,255,255,.14);padding:16px;border-radius:14px;max-width:520px;width:calc(100% - 28px);}
+    .overlay .box{background:var(--card);border:1px solid var(--border);padding:16px;border-radius:14px;max-width:520px;width:calc(100% - 28px);}
     .spinner{width:18px;height:18px;border-radius:50%;border:3px solid rgba(255,255,255,.2);border-top-color:rgba(122,162,255,.9);animation:spin 1s linear infinite;display:inline-block;vertical-align:-4px;margin-right:8px;}
     @keyframes spin{to{transform:rotate(360deg)}}
     table{width:100%;border-collapse:collapse;font-size:12px}
-    th,td{border-bottom:1px solid rgba(255,255,255,.08);padding:8px 6px;text-align:left;white-space:nowrap}
+    th,td{border-bottom:1px solid var(--border);padding:8px 6px;text-align:left;white-space:nowrap}
     th{color:var(--muted);font-weight:600;position:sticky;top:0;background:rgba(18,26,51,.96)}
     .chartGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
     @media (max-width: 980px){ .chartGrid{grid-template-columns:1fr;} }
@@ -70,7 +70,7 @@ option{background:#0b1220;color:#e5e7eb}
     a{color:#b9c9ff}
 
     /* Accordion (설정 섹션 접기) */
-    .acc{border:1px solid rgba(255,255,255,.10);border-radius:14px;background:rgba(255,255,255,.03);padding:10px 12px;margin:10px 0;}
+    .acc{border:1px solid var(--border);border-radius:14px;background:rgba(255,255,255,.03);padding:10px 12px;margin:10px 0;}
     /* 섹션 제목(기본 설정/학업·관계·민원·다문화 설정 등) 가독성 강화 */
     .acc > summary{cursor:pointer;list-style:none;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;font-weight:900;font-size:18px;color:var(--titleAccent);}
     .acc > summary::-webkit-details-marker{display:none;}
@@ -124,7 +124,64 @@ option{background:#0b1220;color:#e5e7eb}
       line-height:1.45;
     }
 
-  </style>
+  
+
+    /* === Light card UI (vibe edition) === */
+    .card{background:var(--card); border:1px solid var(--border); box-shadow:var(--shadow); border-radius:18px;}
+    .panelTitle{color:var(--text);}
+    .divider{border-top:1px solid var(--border);}
+    input, select, textarea{
+      background:#ffffff;
+      color:var(--text);
+      border:1px solid var(--border);
+      border-radius:12px;
+    }
+    input:focus, select:focus, textarea:focus{
+      outline:none;
+      border-color:rgba(37,99,235,.45);
+      box-shadow:0 0 0 4px rgba(37,99,235,.12);
+    }
+    .btnPrimary{
+      background:var(--accent);
+      border:1px solid rgba(37,99,235,.35);
+      color:#fff;
+      border-radius:14px;
+      box-shadow:0 10px 18px rgba(37,99,235,.18);
+    }
+    .btnSecondary{
+      background:#fff;
+      border:1px solid var(--border);
+      color:var(--text);
+      border-radius:14px;
+    }
+    .btnSecondary:hover{border-color:rgba(37,99,235,.35)}
+    .tabBtn{background:#fff;border:1px solid var(--border);color:var(--text);border-radius:999px}
+    .tabBtn.active{background:rgba(37,99,235,.10);border-color:rgba(37,99,235,.35);color:var(--text)}
+    .pill{background:#fff}
+    .small{color:var(--muted)}
+    .accHint{background:rgba(37,99,235,.07);border:1px dashed rgba(37,99,235,.25);color:var(--text);border-radius:14px}
+    details.acc summary{background:#fff;border:1px solid var(--border); border-radius:14px;}
+    details.acc[open] summary{border-color:rgba(37,99,235,.35); background:rgba(37,99,235,.06);}
+    .kv span:nth-child(2){font-weight:800;color:var(--text)}
+    /* Quick start card */
+    .quickCard{padding:14px; margin-bottom:12px; border-radius:18px; border:1px solid var(--border); background:linear-gradient(180deg, rgba(37,99,235,.08), rgba(255,255,255,1));}
+    .qsTitle{font-weight:800; font-size:14px; margin:0 0 10px 0;}
+    .dropzone{
+      border:2px dashed rgba(37,99,235,.28);
+      background:rgba(37,99,235,.04);
+      border-radius:16px;
+      padding:14px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .dropzone:hover{border-color:rgba(37,99,235,.45)}
+    .qsRow{display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end}
+    .qsRow .field{min-width:140px; flex:1}
+    .presetRow{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px}
+    .presetBtn{padding:8px 10px; border-radius:999px; border:1px solid var(--border); background:#fff; cursor:pointer; font-size:12px}
+    .presetBtn:hover{border-color:rgba(37,99,235,.35)}
+    .stickyRun{background:rgba(246,247,251,.85); border-top:1px solid var(--border); backdrop-filter:blur(10px);}
+</style>
 </head>
 <body>
 <header>
@@ -153,6 +210,40 @@ option{background:#0b1220;color:#e5e7eb}
     <div class="app">
       <aside class="card" style="position:sticky; top:120px;">
         <h2 class="panelTitle">⚙️ 설정</h2>
+
+        <div class="quickCard">
+          <div class="qsTitle">빠른 실행</div>
+          <div id="dropzone" class="dropzone" role="button" tabindex="0" aria-label="엑셀 파일 드래그 앤 드롭 또는 클릭">
+            <div style="font-weight:700; margin-bottom:4px;">엑셀(.xlsx) 파일을 여기로 드래그하거나 클릭하세요</div>
+            <div class="small">샘플 양식의 <b>열 이름/형식</b>을 유지하면 자동으로 인식됩니다.</div>
+          </div>
+
+          <div class="qsRow" style="margin-top:10px;">
+            <div class="field">
+              <label style="margin:0 0 6px 0;">반 개수</label>
+              <input id="classCount" type="number" min="2" max="30" value="10" />
+            </div>
+            <div class="field">
+              <label style="margin:0 0 6px 0;">시뮬레이션</label>
+              <input id="iterations" type="number" min="200" max="60000" step="200" value="8000" />
+            </div>
+            <div class="field">
+              <label style="margin:0 0 6px 0;">시드</label>
+              <input id="seed" type="number" min="0" max="999999" value="42" />
+            </div>
+          </div>
+
+          <div class="presetRow" aria-label="프리셋">
+            <button type="button" class="presetBtn" data-preset="balanced">프리셋: 균형</button>
+            <button type="button" class="presetBtn" data-preset="relationship">프리셋: 관계</button>
+            <button type="button" class="presetBtn" data-preset="parent">프리셋: 민원</button>
+          </div>
+
+          <div class="small" style="margin-top:10px;">
+            기본값으로도 충분합니다. 결과가 마음에 들지 않으면 <b>시드만</b> 바꿔 재실행하세요.
+          </div>
+        </div>
+
         <label>학생 데이터 엑셀(.xlsx)</label>
         <input id="fileInput" class="fileInputHidden" type="file" accept=".xlsx" />
         <button id="fileBtn" type="button" class="btnSecondary">엑셀 업로드</button>
@@ -164,10 +255,10 @@ option{background:#0b1220;color:#e5e7eb}
         <div class="small" style="margin-top:8px">* 처음 사용하시면 위 양식을 내려받아 <b>열 이름/형식</b>을 그대로 유지해 주세요.</div>
         <div class="divider"></div>
 
-        <div class="accHint">①~③ 제목(번호)을 눌러 펼친 뒤 값을 입력하세요.</div>
+        <div class="accHint">①~③에서 값을 조정할 수 있습니다. <b>기본은 빠른 실행만으로도 충분</b>하며, ②~③은 필요할 때만 조정하세요.</div>
 
         <!-- ① 기본 설정 (초기: 닫힘) -->
-        <details class="acc">
+        <details class="acc" open>
           <summary>
             <span>
               ① 기본 설정
@@ -175,18 +266,14 @@ option{background:#0b1220;color:#e5e7eb}
             </span>
           </summary>
           <div class="accInner">
-            <label>1. 반 개수</label>
-            <input id="classCount" type="number" min="2" max="30" value="10" />
+            <div class="small" style="margin-top:2px;">
+              * 기본 설정(반 개수/시뮬레이션/시드)은 위 <b>빠른 실행</b> 영역에서 입력합니다.
+            </div>
             <div class="divider"></div>
-
-            <label>2. 시뮬레이션 횟수(클수록 더 균형 / 느려질 수 있음)</label>
-            <input id="iterations" type="number" min="200" max="60000" step="200" value="8000" />
-            <div class="small">* 250명/10반 기준: 8,000~20,000 추천</div>
-            <div class="divider"></div>
-
-            <label>3. 배정 기준값(랜덤 시드: 같은 값이면 같은 결과)</label>
-            <input id="seed" type="number" min="0" max="999999" value="42" />
-          </div>
+            <div class="small">
+              권장값(250명/10반 기준): 시뮬레이션 8,000~20,000
+            </div>
+</div>
         </details>
 
         <!-- ② 학업·관계·민원·다문화 설정 (기본 접힘) -->
@@ -492,5 +579,65 @@ option{background:#0b1220;color:#e5e7eb}
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="./app.js?v=344"></script>
+
+<script>
+(function(){
+  function $(q){ return document.querySelector(q); }
+  function $all(q){ return Array.from(document.querySelectorAll(q)); }
+
+  const dz = $("#dropzone");
+  const fileInput = $("#fileInput");
+  const fileBtn = $("#fileBtn");
+
+  function openPicker(){ if(fileInput) fileInput.click(); }
+
+  if(dz){
+    dz.addEventListener("click", openPicker);
+    dz.addEventListener("keydown", (e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); openPicker(); }});
+    dz.addEventListener("dragover", (e)=>{ e.preventDefault(); dz.style.borderColor="rgba(37,99,235,.6)"; });
+    dz.addEventListener("dragleave", ()=>{ dz.style.borderColor="rgba(37,99,235,.28)"; });
+    dz.addEventListener("drop", (e)=>{
+      e.preventDefault();
+      dz.style.borderColor="rgba(37,99,235,.28)";
+      const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if(!f || !fileInput) return;
+      const dt = new DataTransfer();
+      dt.items.add(f);
+      fileInput.files = dt.files;
+      fileInput.dispatchEvent(new Event("change", {bubbles:true}));
+    });
+  }
+
+  // Keep existing button behavior
+  if(fileBtn){ fileBtn.addEventListener("click", openPicker); }
+
+  // Presets (weights)
+  function setVal(id, v){
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.value = String(v);
+    el.dispatchEvent(new Event("input", {bubbles:true}));
+    el.dispatchEvent(new Event("change", {bubbles:true}));
+  }
+  const presets = {
+    balanced: { wAcad:160, wPeer:160, wParent:260, wMulti:160 },
+    relationship: { wAcad:120, wPeer:320, wParent:220, wMulti:160 },
+    parent: { wAcad:120, wPeer:140, wParent:420, wMulti:160 }
+  };
+
+  $all(".presetBtn").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const key = btn.getAttribute("data-preset");
+      const p = presets[key];
+      if(!p) return;
+      setVal("wAcad", p.wAcad);
+      setVal("wPeer", p.wPeer);
+      setVal("wParent", p.wParent);
+      setVal("wMulti", p.wMulti);
+    });
+  });
+})();
+</script>
+
 </body>
 </html>
