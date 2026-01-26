@@ -169,7 +169,6 @@ console.log('class-assign webapp v3.4.2 loaded');
 
   const classCountEl = document.getElementById("classCount");
   const iterationsEl = document.getElementById("iterations");
-  const seedEl = document.getElementById("seed");
   const wAcad = document.getElementById("wAcad");
   const wPeer = document.getElementById("wPeer");
   const wParent = document.getElementById("wParent");
@@ -259,8 +258,6 @@ console.log('class-assign webapp v3.4.2 loaded');
     if (!settingsSummaryBox || !settingsSummaryLines) return;
     const cc = classCountEl ? String(classCountEl.value||"") : "-";
     const it = iterationsEl ? String(iterationsEl.value||"") : "-";
-    const sd = seedEl ? String(seedEl.value||"") : "-";
-
     const sm = labelOfSelect(specialModeEl);
     const mm = labelOfSelect(multiModeEl);
     const ad = labelOfSelect(adhdCapEl);
@@ -268,7 +265,7 @@ console.log('class-assign webapp v3.4.2 loaded');
     const care = labelOfSelect(careStrengthEl);
 
     const lines = [
-      `• 반 ${cc}개 · 시뮬레이션 ${it}회 · 시드 ${sd}`,
+      `• 반 ${cc}개 · 시뮬레이션 ${it}회`,
       `• 특수 ${sm} · 다문화 ${mm} · ADHD ${ad}`,
       `• 분리 ${sep} · 배려 ${care}`,
     ];
@@ -278,7 +275,7 @@ console.log('class-assign webapp v3.4.2 loaded');
   }
 
   // 설정 변화 시 요약 갱신
-  [classCountEl, iterationsEl, seedEl, specialModeEl, multiModeEl, adhdCapEl, sepStrengthEl, careStrengthEl, wAcad, wPeer, wParent, wMulti]
+  [classCountEl, iterationsEl, specialModeEl, multiModeEl, adhdCapEl, sepStrengthEl, careStrengthEl, wAcad, wPeer, wParent, wMulti]
     .filter(Boolean)
     .forEach(el=>{
       el.addEventListener("change", renderSettingsSummary);
@@ -926,7 +923,15 @@ console.log('class-assign webapp v3.4.2 loaded');
 
     const classCount = Math.max(2, Math.min(30, parseInt(classCountEl.value||"10",10)));
     const iterations = Math.max(200, Math.min(60000, parseInt(iterationsEl.value||"8000",10)));
-    const seed = Math.max(0, Math.min(999999, parseInt(seedEl.value||"42",10)));
+    const seed = (()=>{
+      try{
+        const a = new Uint32Array(1);
+        (window.crypto||crypto).getRandomValues(a);
+        return Number(a[0] % 1000000);
+      }catch(e){
+        return Math.floor(Math.random()*1000000);
+      }
+    })();
 
     const weights = {
       wAcad: parseInt(wAcad.value,10),
@@ -1016,7 +1021,7 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
   const unsatCareTable = document.getElementById("unsatCareTable");
 
   function renderResult(payload){
-    metaPill.textContent = `${payload.meta.total}명 · ${payload.meta.classCount}반 · ${payload.meta.iterations.toLocaleString()}회 · seed ${payload.meta.seed} · ${payload.meta.elapsedMs.toLocaleString()}ms`;
+    metaPill.textContent = `${payload.meta.total}명 · ${payload.meta.classCount}반 · ${payload.meta.iterations.toLocaleString()}회 · ${payload.meta.elapsedMs.toLocaleString()}ms`;
     scorePill.textContent = `Score: ${Math.round(payload.best.score).toLocaleString()}`;
     sepPill.textContent = `분리 미충족: ${payload.best.sepStudents.toLocaleString()}명 (위반 ${payload.best.sepPairs.toLocaleString()}쌍)`;
     carePill.textContent = `배려 미충족: ${payload.best.careStudents.toLocaleString()}명 (미충족 ${payload.best.carePairs.toLocaleString()}쌍)`;
@@ -1405,9 +1410,7 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
         ["항목","값"],
         ["총원", payload.meta.total],
         ["반 수", payload.meta.classCount],
-        ["시뮬레이션", payload.meta.iterations],
-        ["시드", payload.meta.seed],
-        ["경과(ms)", payload.meta.elapsedMs],
+        ["시뮬레이션", payload.meta.iterations],        ["경과(ms)", payload.meta.elapsedMs],
         ["학업 가중치", payload.meta.weights.wAcad],
         ["교우 가중치", payload.meta.weights.wPeer],
         ["민원 가중치", payload.meta.weights.wParent],
@@ -1424,7 +1427,7 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
       ]);
       XLSX.utils.book_append_sheet(wb, metaSheet, "설정요약");
 
-      XLSX.writeFile(wb, `반배정_결과_${payload.meta.total}명_${payload.meta.classCount}반_seed${payload.meta.seed}.xlsx`);
+      XLSX.writeFile(wb, `반배정_결과_${payload.meta.total}명_${payload.meta.classCount}반.xlsx`);
     };
 
     renderClassSummary();
@@ -1438,5 +1441,32 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
     renderResultTable("all");
     drawCharts();
   }
+
+
+  // Intro/App view routing
+  const introView = document.getElementById("introView");
+  const appView = document.getElementById("appView");
+  const headerIntro = document.getElementById("headerIntro");
+  const headerApp = document.getElementById("headerApp");
+  const goAppBtn = document.getElementById("goAppBtn");
+
+  function setView(view){
+    const isIntro = view === "intro";
+    if (introView) introView.style.display = isIntro ? "" : "none";
+    if (appView) appView.style.display = isIntro ? "none" : "";
+    if (headerIntro) headerIntro.style.display = isIntro ? "" : "none";
+    if (headerApp) headerApp.style.display = isIntro ? "none" : "";
+  }
+
+  function route(){
+    const h = (location.hash || "").replace("#","").toLowerCase();
+    if(h === "app" || h === "run"){ setView("app"); }
+    else { setView("intro"); }
+  }
+
+  if (goAppBtn) goAppBtn.addEventListener("click", ()=>{ location.hash = "#app"; });
+
+  window.addEventListener("hashchange", route);
+  route();
 
 })();
