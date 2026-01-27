@@ -162,7 +162,40 @@
     /* Note box (high contrast on light UI) */
     .noteBox{padding:10px 12px;border-radius:12px;background:rgba(254,249,195,1);border:1px solid rgba(245,158,11,.45);color:#111827;}
 
-  </style>
+  
+    /* --- Layout polish: 좌측 설정/우측 미리보기 균형(스크롤 분리) --- */
+    #setupTab .app{align-items:stretch; min-height: calc(100vh - 210px);}
+    #setupTab aside.card{
+      height: calc(100vh - 170px);
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+    }
+    #setupTab .asideScroll{
+      overflow:auto;
+      padding-right:6px;
+      margin-top:10px;
+    }
+    #setupTab .rightCol{
+      height: calc(100vh - 170px);
+      overflow:auto;
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+
+    /* --- Select(토글) 크기 통일 --- */
+    #setupTab aside.card select{
+      width: 260px;
+      max-width: 100%;
+      min-height: 44px;
+      padding: 10px 12px;
+    }
+
+    /* --- Result spacing --- */
+    #resultTab .small{line-height:1.55}
+    .unsatTitle{font-weight:900; font-size:14px;}
+</style>
 </head>
 <body>
 <header id="headerIntro">
@@ -213,7 +246,7 @@
         <li>
           설정(반 개수/가중치/분리·배려 강도)
           <div class="small" style="margin-top:6px">
-            • <b>가중치</b>: 학업/관계/민원 등 여러 기준 중 무엇을 더 우선할지 정합니다. 값이 높을수록 해당 기준이 더 많이 반영됩니다.<br/>
+            • <b>가중치</b>: 학업/교우관계/민원 등 여러 기준 중 무엇을 더 우선할지 정합니다. 값이 높을수록 해당 기준이 더 많이 반영됩니다.<br/>
             • <b>분리 강도</b>: 강도가 높을수록 <b>분리요청을 한 학생은 가능한 한 다른 반</b>으로 배정합니다. 예) A학생과 B학생이 같은 분리요청 그룹이면, <b>서로 다른 반</b>이 되도록 우선합니다.<br/>• <b>배려 강도</b>: 강도가 높을수록 <b>배려요청을 한 학생은 가능한 한 같은 반</b>으로 배정합니다. 예) C학생과 D학생이 같은 배려요청 그룹이면, <b>같은 반</b>이 되도록 우선합니다.
           </div>
         </li>
@@ -250,6 +283,7 @@
         <label>학생 데이터 엑셀(.xlsx)</label>
         <input id="fileInput" class="fileInputHidden" type="file" accept=".xlsx" />
         <button id="fileBtn" type="button" class="btnSecondary">엑셀 업로드</button>
+        <div class="asideScroll">
         <!-- ① 기본 설정 (초기: 닫힘) -->
         <details class="acc" id="accBasic">
           <summary><span>① 기본 설정</span></summary>
@@ -265,21 +299,21 @@
 
         <!-- ② 학업·관계·민원·다문화 설정 (기본 접힘) -->
         <details class="acc" id="accWeights">
-          <summary><span>② 학업·관계·민원 설정</span></summary>
+          <summary><span>② 학업·교우관계·민원 설정</span></summary>
           <div class="accInner">
             <div class="small" style="margin-top:2px; opacity:.95;">* 가중치는 “반배정 점수” 계산에 사용됩니다. <b>값이 높을수록</b> 해당 항목이 반배정에 <b>더 강하게</b> 반영됩니다.</div>
             <div style="margin-top:10px">
-              <label>4-1. 학업성취 가중치</label>
+              <label>1. 학업성취 가중치</label>
               <input id="wAcad" type="range" min="0" max="600" value="160" step="10" />
               <div class="kv"><span>0</span><span id="wAcadV">160</span><span>600</span></div>
             </div>
             <div style="margin-top:10px">
-              <label>4-2. 교우관계 가중치</label>
+              <label>2. 교우관계 가중치</label>
               <input id="wPeer" type="range" min="0" max="600" value="160" step="10" />
               <div class="kv"><span>0</span><span id="wPeerV">160</span><span>600</span></div>
             </div>
             <div style="margin-top:10px">
-              <label>4-3. 학부모민원 가중치</label>
+              <label>3. 학부모민원 가중치</label>
               <input id="wParent" type="range" min="0" max="600" value="260" step="10" />
               <div class="kv"><span>0</span><span id="wParentV">260</span><span>600</span></div>
             </div>
@@ -293,7 +327,7 @@
               ③ 요청·제약 설정</span>
           </summary>
           <div class="accInner">
-            <label>5. <strong style='font-size:1.05em'>ADHD 학생 배정(3단계)</strong></label>
+            <label>1. <strong style='font-size:1.05em'>ADHD 학생 배정(3단계)</strong></label>
             <select id="adhdCap">
               <option value="off" selected>미적용</option>
               <option value="normal">보통</option>
@@ -354,13 +388,14 @@
           </div>
         </details>
 
+        </div>
         <div class="stickyRun">
           <button id="runBtn" type="button" disabled>반배정 실행 → 결과 탭 보기</button>
           <div class="tip">결과가 마음에 안 들면 설정을 조금 조정하거나 다시 실행해 보세요.</div>
         </div>
       </aside>
 
-      <section style="display:flex; flex-direction:column; gap:14px;">
+      <section class="rightCol">
         <section class="card">
           <h2 class="panelTitle">📊 기본 통계</h2>
           <div id="stats" class="small">엑셀을 선택하면 통계/미리보기가 표시됩니다.</div>
@@ -428,21 +463,23 @@
           • <b>분리 미충족</b>: 같은 <b>분리요청 그룹(상대학생)</b>이 같은 반에 함께 배정된 경우<br/>
           • <b>배려 미충족</b>: 같은 <b>배려요청 그룹(상대학생)</b> 친구가 <b>자기 반에 1명도 없는</b> 경우
         </div>
-        <details open>
-          <summary style="cursor:pointer; font-weight:900;">분리 미충족 목록 <span class="small" id="unsatSepMeta"></span></summary>
+        
+        <div class="unsatBlock">
+          <div class="unsatTitle">분리 미충족 목록 <span class="small" id="unsatSepMeta"></span></div>
           <div style="height:8px"></div>
           <div style="overflow:auto; max-height: 280px;">
             <table id="unsatSepTable"></table>
           </div>
-        </details>
-        <div style="height:12px"></div>
-        <details>
-          <summary style="cursor:pointer; font-weight:900;">배려 미충족 목록 <span class="small" id="unsatCareMeta"></span></summary>
+        </div>
+        <div style="height:14px"></div>
+        <div class="unsatBlock">
+          <div class="unsatTitle">배려 미충족 목록 <span class="small" id="unsatCareMeta"></span></div>
           <div style="height:8px"></div>
           <div style="overflow:auto; max-height: 280px;">
             <table id="unsatCareTable"></table>
           </div>
-        </details>
+        </div>
+    
       </section>
 
       <section class="card">
