@@ -598,8 +598,15 @@ console.log('class-assign webapp v3.4.2 loaded');
       const over = adhd[c] - adhdIdealMax;
       if (over > 0) adhdOverflow += over*over;
 
-      if (weights && typeof weights.adhdCap === 'number' && isFinite(weights.adhdCap)){
-        const overCap = adhd[c] - weights.adhdCap;
+      // ADHD 모드(미적용/보통/강): 기대값 기반으로 반당 상한을 자동 결정합니다.
+      // - 미적용(off): 상한 없음(하드캡 벌점 없음)
+      // - 보통(normal): ceil(expected)+1
+      // - 강(strong): ceil(expected)
+      if (weights && weights.adhdMode && weights.adhdMode !== 'off') {
+        const exp = adhdExpected; // 평균 기대값
+        const base = Math.ceil(exp);
+        const cap = (weights.adhdMode === 'strong') ? base : (base + 1);
+        const overCap = adhd[c] - cap;
         if (overCap > 0) adhdHardCapOverflow += overCap*overCap;
       }
     }
@@ -627,9 +634,7 @@ console.log('class-assign webapp v3.4.2 loaded');
       2500*adhdOverflow +
       // 하드캡은 다른 항목보다 우선해서 지키도록 큰 벌점
       2000000*adhdHardCapOverflow +
-      (multiModeK * multiSqErr) +
-      (weights.wMulti * multiSqErr) +
-      weights.wParent*vParent +
+      (multiModeK * multiSqErr) +      weights.wParent*vParent +
       weights.wAcad*vAcad +
       weights.wPeer*vPeer;
 
@@ -937,11 +942,11 @@ console.log('class-assign webapp v3.4.2 loaded');
       wAcad: parseInt(wAcad.value,10),
       wPeer: parseInt(wPeer.value,10),
       wParent: parseInt(wParent.value,10),
-      wMulti: (wMulti ? parseInt(wMulti.value,10) : 0),
+      wMulti: 0,
       sepPenalty: strengthToPenalty(sepStrengthEl.value, 'sep'),
       carePenalty: strengthToPenalty(careStrengthEl.value, 'care'),
-      // ADHD 반당 최대 인원(선택). auto면 제한 없음.
-      adhdCap: (adhdCapEl && String(adhdCapEl.value||'auto') !== 'auto') ? Math.max(1, Math.min(5, parseInt(adhdCapEl.value,10))) : null,
+      // ADHD 학생 배정(3단계): 미적용/보통/강
+      adhdMode: (adhdCapEl ? String(adhdCapEl.value||"off") : "off"),
       // 특수학생 배정(3단계): 미적용/보통/강
       specialMode: (specialModeEl ? String(specialModeEl.value||"medium") : "medium"),
       multiMode: (multiModeEl ? String(multiModeEl.value||"off") : "off")
@@ -1413,9 +1418,7 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
         ["시뮬레이션", payload.meta.iterations],        ["경과(ms)", payload.meta.elapsedMs],
         ["학업 가중치", payload.meta.weights.wAcad],
         ["교우 가중치", payload.meta.weights.wPeer],
-        ["민원 가중치", payload.meta.weights.wParent],
-        ["다문화 가중치", payload.meta.weights.wMulti],
-        ["분리강도", payload.meta.sepStrength],
+        ["민원 가중치", payload.meta.weights.wParent],        ["분리강도", payload.meta.sepStrength],
         ["배려강도", payload.meta.careStrength],
         ["특수 적용", payload.meta.weights.specialMode],
         ["다문화 적용", payload.meta.weights.multiMode],

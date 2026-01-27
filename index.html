@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>반배정 도우미 (브라우저 전용)</title>
   <style>
-    :root{ --bg:#f6f7fb; --card:#ffffff; --text:#0f172a; --muted:#475569; --accent:#2563eb; --danger:#dc2626; --ok:#16a34a; --desc:#1d4ed8; --subtle:#64748b; --titleAccent:#0f172a; --border:rgba(15,23,42,.12); }
+    :root{ --bg:#f6f7fb; --card:#ffffff; --text:#0f172a; --muted:#475569; --accent:#60a5fa; --danger:#dc2626; --ok:#16a34a; --desc:#1d4ed8; --subtle:#64748b; --titleAccent:#0f172a; --border:rgba(15,23,42,.12); }
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans KR,Arial,sans-serif;background:var(--bg);color:var(--text);}
     header{padding:16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(246,247,251,.9);backdrop-filter:blur(8px);z-index:50;}
     .wrap{max-width:1300px;margin:0 auto;padding:14px;}
@@ -20,7 +20,7 @@
     .pill.warn{border-color:rgba(255,107,107,.55);color:#ffd7d7}
     .tabs{display:flex;gap:8px;margin-top:12px}
     .tabBtn{background:rgba(15,23,42,.06);border:1px solid rgba(15,23,42,.12);color:var(--text);padding:8px 12px;border-radius:999px;cursor:pointer;font-weight:800}
-    .tabBtn.active{background:var(--accent);color:#071022;border-color:transparent}
+    .tabBtn.active{background:var(--accent);color:#0b1220;border-color:transparent}
     .app{display:grid;grid-template-columns:340px 1fr;gap:14px;align-items:start}
     @media (max-width: 980px){ .app{grid-template-columns:1fr;} }
     .card{background:var(--card);border:1px solid rgba(15,23,42,.08);border-radius:14px;padding:14px;box-shadow:0 8px 24px rgba(0,0,0,.25);}
@@ -51,8 +51,12 @@
     input[type=number],select{padding:10px;border-radius:12px;border:1px solid rgba(15,23,42,.12);background:rgba(15,23,42,.03);color:var(--text)}
     input[type=range]{width:100%;accent-color:var(--accent)}
     .kv{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted);margin-top:6px}
-    button{background:var(--accent);border:none;color:#071022;padding:11px 12px;border-radius:12px;font-weight:900;cursor:pointer;width:100%}
+    button{background:var(--accent);border:none;color:#0b1220;padding:11px 12px;border-radius:12px;font-weight:900;cursor:pointer;width:auto}
     .btnSecondary{background:rgba(15,23,42,.07);border:1px solid rgba(15,23,42,.14);color:var(--text)}
+    .btn, .btnSecondary, #fileBtn, #runBtn{width:100%}
+    .tabBtn{width:auto}
+    .homeBtn{width:auto}
+
     button:disabled{opacity:.4;cursor:not-allowed}
     .small{font-size:12px;color:var(--muted)}
     .danger{color:var(--danger)}
@@ -73,7 +77,10 @@
     .headerTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
     .homeBtn{display:inline-flex;align-items:center;gap:8px;background:rgba(37,99,235,.10);border:1px solid rgba(37,99,235,.25);color:var(--text);padding:8px 10px;border-radius:999px;cursor:pointer;font-weight:900;}
     .homeBtn:hover{background:rgba(37,99,235,.14)}
-    .homeIcon{width:16px;height:16px;display:inline-block}
+    
+    .mintBtn{background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.35);color:var(--text)}
+    .mintBtn:hover{background:rgba(16,185,129,.18)}
+.homeIcon{width:16px;height:16px;display:inline-block}
 
     /* Accordion (설정 섹션 접기) */
     .acc{border:1px solid rgba(15,23,42,.10);border-radius:14px;background:rgba(15,23,42,.03);padding:10px 12px;margin:10px 0;}
@@ -194,11 +201,8 @@
         <li>
           설정(반 개수/가중치/분리·배려 강도)
           <div class="small" style="margin-top:6px">
-            • <b>가중치</b>: 학업/관계/민원/다문화 등 여러 기준 중 무엇을 더 우선할지 정합니다. 값이 높을수록 해당 기준이 더 많이 반영됩니다.<br/>
-            • <b>분리 강도</b>: 분리요청을 얼마나 강하게 지킬지 정합니다. 높을수록 <b>분리요청을 한 학생은 가능한 한 다른 반</b>으로 배정합니다.<br/>
-            &nbsp;&nbsp;예) A학생과 B학생이 같은 분리요청 그룹이면, <b>서로 다른 반</b>이 되도록 우선합니다.<br/>
-            • <b>배려 강도</b>: 배려요청을 얼마나 강하게 지킬지 정합니다. 높을수록 <b>배려요청을 한 학생은 가능한 한 같은 반</b>으로 배정합니다.<br/>
-            &nbsp;&nbsp;예) C학생과 D학생이 같은 배려요청 그룹이면, <b>같은 반</b>이 되도록 우선합니다.
+            • <b>가중치</b>: 학업/관계/민원 등 여러 기준 중 무엇을 더 우선할지 정합니다. 값이 높을수록 해당 기준이 더 많이 반영됩니다.<br/>
+            • <b>분리 강도</b>: 강도가 높을수록 <b>분리요청을 한 학생은 가능한 한 다른 반</b>으로 배정합니다. 예) A학생과 B학생이 같은 분리요청 그룹이면, <b>서로 다른 반</b>이 되도록 우선합니다.<br/>• <b>배려 강도</b>: 강도가 높을수록 <b>배려요청을 한 학생은 가능한 한 같은 반</b>으로 배정합니다. 예) C학생과 D학생이 같은 배려요청 그룹이면, <b>같은 반</b>이 되도록 우선합니다.
           </div>
         </li>
         <li>반배정 실행</li>
@@ -221,7 +225,7 @@
       <div class="small">처음 사용하시면 위 양식을 내려받아 <b>열 이름/형식을 유지하며 작성해주세요.</b></div>
       <div class="btnRow" style="margin-top:12px">
         <a href="template.xlsx" download="반배정_양식_샘플.xlsx" style="text-decoration:none;flex:1">
-          <button type="button" class="btnSecondary" style="width:100%">샘플 양식 다운로드</button>
+          <button type="button" class="btnSecondary mintBtn" style="width:100%">샘플 양식 다운로드</button>
         </a>
         <button type="button" class="btn" id="goAppBtn" style="flex:1">실행 화면으로 이동</button>
       </div>
@@ -276,11 +280,7 @@
               <input id="wParent" type="range" min="0" max="600" value="260" step="10" />
               <div class="kv"><span>0</span><span id="wParentV">260</span><span>600</span></div>
             </div>
-            <div style="margin-top:10px">
-              <label>4-4. 다문화학생 가중치</label>
-              <input id="wMulti" type="range" min="0" max="600" value="160" step="10" />
-              <div class="kv"><span>0</span><span id="wMultiV">160</span><span>600</span></div>
-            </div>
+</div>
           </div>
         </details>
 
@@ -291,14 +291,11 @@
               ③ 요청·제약 설정</span>
           </summary>
           <div class="accInner">
-            <label>5. <strong style='font-size:1.05em'>ADHD 반당 최대 인원</strong>(제한)</label>
+            <label>5. <strong style='font-size:1.05em'>ADHD 학생 배정(3단계)</strong></label>
             <select id="adhdCap">
-              <option value="auto" selected>자동(제한 없음 · 균등 분산 우선)</option>
-              <option value="1">1명</option>
-              <option value="2">2명</option>
-              <option value="3">3명</option>
-              <option value="4">4명</option>
-              <option value="5">5명</option>
+              <option value="off" selected>미적용</option>
+              <option value="normal">보통</option>
+              <option value="strong">강</option>
             </select>
             <div class="helpRow">
               <button type="button" class="helpBtn" data-help="help-adhd">
