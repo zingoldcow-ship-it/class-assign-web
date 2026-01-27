@@ -64,6 +64,9 @@
     input[type=range]{width:100%;accent-color:var(--accent)}
     .kv{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted);margin-top:6px}
     button{background:var(--accent);border:none;color:#0b1220;padding:11px 12px;border-radius:12px;font-weight:900;cursor:pointer;width:auto}
+    .downloadBtn{display:inline-flex;align-items:center;gap:10px;padding:14px 18px;border-radius:16px;font-size:15px;font-weight:950;min-width:200px;}
+    .downloadBtn .btnIcon{font-size:18px;line-height:1;}
+
     .btnSecondary{background:rgba(15,23,42,.07);border:1px solid rgba(15,23,42,.14);color:var(--text)}
     .btn, .btnSecondary, #fileBtn, #runBtn{width:100%}
     .tabBtn{width:auto}
@@ -71,6 +74,8 @@
 
     button:disabled{opacity:.4;cursor:not-allowed}
     .small{font-size:12px;color:var(--muted)}
+    .subNote{display:block;font-size:12px;line-height:1.25;color:var(--subtle);font-weight:700;margin-top:2px;}
+
     .danger{color:var(--danger)}
     .overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:100;}
     .overlay .box{background:var(--card);border:1px solid rgba(15,23,42,.14);padding:16px;border-radius:14px;max-width:520px;width:calc(100% - 28px);}
@@ -103,6 +108,11 @@
     /* 토글(화살표)을 더 크게/눈에 띄게 */
     .acc > summary::after{content:"▾";opacity:.95;margin-top:2px;font-size:18px;transition:transform .15s ease;color:var(--titleAccent);}
     details[open].acc > summary::after{transform:rotate(90deg)}
+    /* Accordion header contrast (active vs inactive) */
+    .acc > summary span{font-weight:950;color:var(--text);}
+    details[open].acc > summary span{color:var(--desc);}
+    details[open].acc{background:rgba(96,165,250,.10);border-color:rgba(29,78,216,.22);}
+
     .accInner{padding-top:10px;}
 
     /* Accordion 사용 안내 문구 */
@@ -262,7 +272,7 @@
 
     <div class="introSection">
       <h2 class="panelTitle">샘플 양식</h2>
-      <div class="small">처음 사용하시면 위 양식을 내려받아 <b>열 이름/형식을 유지하며 작성해주세요.</b></div>
+      <div class="small">처음 사용하시면 위 양식을 내려받아 <b>열 이름/형식을 유지하며 작성해주세요.</b></div><div class="small" style="margin-top:6px;color:var(--subtle);">모든 칸을 다 채우지 않아도 됩니다. <b>입력 가능한 항목만</b> 작성해도 실행할 수 있어요.</div>
       <div class="btnRow" style="margin-top:12px">
         <a href="template.xlsx" download="반배정_양식_샘플.xlsx" style="text-decoration:none;flex:1">
           <button type="button" class="btnSecondary mintBtn" style="width:100%">샘플 양식 다운로드</button>
@@ -440,7 +450,7 @@
             <span class="pill" id="carePill">배려 미충족: -</span>
           </div>
           <div class="row">
-            <button id="downloadBtn" style="width:auto;">결과 엑셀 다운로드</button>
+            <button id="downloadBtn" class="downloadBtn" style="width:auto;"><span class="btnIcon">⬇️</span><span>결과 엑셀 다운로드</span></button>
           </div>
         </div>
       </section>
