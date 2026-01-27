@@ -175,10 +175,24 @@
     .introSection .panelTitle{margin:0 0 6px 0;font-size:14px}
     /* App how-to header (ivory card) */
     .howtoCard{background:rgba(255, 250, 240, 1);border-color:rgba(245,158,11,.25)}
+    /* Make the "앱 사용방법" title stand out without using blue */
     .howtoCard .panelTitle{font-size:18px;font-weight:950;margin-bottom:10px;}
+    .howtoTitleWrap{display:inline-flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.72);border:1px solid rgba(15,23,42,.10);box-shadow:0 6px 16px rgba(0,0,0,.10);}
+    .howtoTitleWrap .t{font-size:18px;font-weight:950;letter-spacing:-0.2px;color:#7c2d12;}
 
     /* Note box (high contrast on light UI) */
     .noteBox{padding:10px 12px;border-radius:12px;background:rgba(254,249,195,1);border:1px solid rgba(245,158,11,.45);color:#111827;}
+
+    /* Intro: separate action buttons area */
+    .introActions{margin-top:12px;padding:12px;border-radius:12px;border:1px solid rgba(15,23,42,.10);background:rgba(15,23,42,.02);}
+
+    /* Result header polish */
+    .resultHeader{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+    .resultPills{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+    #resultTab .pill{font-size:13px;padding:8px 12px;}
+    #resultTab .pill.ok{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.40)}
+    #resultTab .pill.warn{background:rgba(255,107,107,.14);border-color:rgba(255,107,107,.55);color:#7f1d1d;font-weight:900;}
+    #resultTab .pill.care{background:rgba(245,158,11,.14);border-color:rgba(245,158,11,.35);color:#78350f;font-weight:900;}
 
   
     /* --- Layout polish: 좌측 설정/우측 미리보기 균형(스크롤 분리) --- */
@@ -258,7 +272,9 @@
   <section id="introView">
   <div class="card">
     <div class="introSection howtoCard">
-      <h2 class="panelTitle">앱 사용방법</h2>
+      <div class="howtoTitleWrap" aria-label="앱 사용방법">
+        <div class="t">앱 사용방법</div>
+      </div>
       <ol class="guideList">
         <li>샘플 양식에 학생 정보를 입력</li>
         <li>실행 화면으로 이동</li>
@@ -283,7 +299,10 @@
     <div class="introSection">
       <h2 class="panelTitle">샘플 양식</h2>
       <div class="small">처음 사용하시면 위 양식을 내려받아 <b>열 이름/형식을 유지하며 작성해주세요.</b></div><div class="small" style="margin-top:6px;color:var(--subtle);">모든 칸을 다 채우지 않아도 됩니다. <b>입력 가능한 항목만</b> 작성해도 실행할 수 있어요.</div>
-      <div class="btnRow" style="margin-top:12px">
+    </div>
+
+    <div class="introActions">
+      <div class="btnRow">
         <a href="template.xlsx" download="반배정_양식_샘플.xlsx" style="text-decoration:none;flex:1">
           <button type="button" class="btnSecondary mintBtn" style="width:100%">샘플 양식 다운로드</button>
         </a>
@@ -453,15 +472,13 @@
     <div style="display:flex;flex-direction:column;gap:14px;">
       <section class="card">
         <h2 class="panelTitle">✅ 반배정 결과</h2>
-        <div class="row" style="justify-content:space-between;">
-          <div class="row">
+        <div class="resultHeader">
+          <div class="resultPills">
             <span class="pill ok" id="metaPill">-</span>
-<span class="pill warn" id="sepPill">분리 위반: -</span>
-            <span class="pill" id="carePill">배려 미충족: -</span>
+            <span class="pill warn" id="sepPill">분리 미충족: -</span>
+            <span class="pill care" id="carePill">배려 미충족: -</span>
           </div>
-          <div class="row">
-            <button id="downloadBtn" class="downloadBtn" style="width:auto;"><span class="btnIcon">⬇️</span><span>결과 엑셀 다운로드</span></button>
-          </div>
+          <button id="downloadBtn" class="downloadBtn" style="width:auto;"><span class="btnIcon">⬇️</span><span>결과 엑셀 다운로드</span></button>
         </div>
       </section>
 
