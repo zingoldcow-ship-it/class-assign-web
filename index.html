@@ -329,12 +329,25 @@
         <details class="acc" id="accBasic">
           <summary><span>① 기본 설정</span></summary>
           <div class="accInner">
+
             <label>1. 반 개수</label>
             <input id="classCount" type="number" min="2" max="30" value="10" />
             <div class="divider"></div>
 
-            <label>2. 시뮬레이션 횟수(클수록 더 균형 / 느려질 수 있음)</label>
-            <input id="iterations" type="number" min="200" max="60000" step="200" value="8000" />
+            <label>2. <strong style='font-size:1.05em'>남/여 성비 균형(3단계)</strong></label>
+            <select id="genderBalance">
+              <option value="off">미적용</option>
+              <option value="medium">보통 (반마다 남녀 차이 ±2 정도로 유지)</option>
+              <option value="strong" selected>강 (반마다 남녀 차이 ±1 정도로 유지)</option>
+            </select>
+            <div class="divider"></div>
+
+            <label>3. <strong style='font-size:1.05em'>시뮬레이션 정밀도(3단계)</strong><br><span class='subNote'>(높을수록 더 균형 / 느려질 수 있음)</span></label>
+            <select id="iterMode">
+              <option value="low">낮음 (빠르게 시도)</option>
+              <option value="medium" selected>보통 (권장)</option>
+              <option value="high">높음 (더 오래 계산)</option>
+            </select>
           </div>
         </details>
 

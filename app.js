@@ -168,7 +168,8 @@ console.log('class-assign webapp v3.4.2 loaded');
   const settingsSummaryLines = document.getElementById("settingsSummaryLines");
 
   const classCountEl = document.getElementById("classCount");
-  const iterationsEl = document.getElementById("iterations");
+  const genderBalanceEl = document.getElementById("genderBalance");
+  const iterModeEl = document.getElementById("iterMode");
   const wAcad = document.getElementById("wAcad");
   const wPeer = document.getElementById("wPeer");
   const wParent = document.getElementById("wParent");
@@ -254,10 +255,18 @@ console.log('class-assign webapp v3.4.2 loaded');
     }catch(_){ return String(el?.value || "-"); }
   }
 
+  function iterModeToIterations(mode){
+    const m = String(mode||"medium");
+    if (m === "high") return 8000;
+    if (m === "low") return 2000;
+    return 4000; // medium (권장)
+  }
+
   function renderSettingsSummary(){
     if (!settingsSummaryBox || !settingsSummaryLines) return;
     const cc = classCountEl ? String(classCountEl.value||"") : "-";
-    const it = iterationsEl ? String(iterationsEl.value||"") : "-";
+    const itLabel = labelOfSelect(iterModeEl);
+    const gb = labelOfSelect(genderBalanceEl);
     const sm = labelOfSelect(specialModeEl);
     const mm = labelOfSelect(multiModeEl);
     const ad = labelOfSelect(adhdCapEl);
@@ -265,8 +274,8 @@ console.log('class-assign webapp v3.4.2 loaded');
     const care = labelOfSelect(careStrengthEl);
 
     const lines = [
-      `• 반 ${cc}개 · 시뮬레이션 ${it}회`,
-      `• 특수 ${sm} · 다문화 ${mm} · ADHD ${ad}`,
+      `• 반 ${cc}개 · 시뮬레이션 ${itLabel}`,
+      `• 성비 ${gb} · 특수 ${sm} · 다문화 ${mm} · ADHD ${ad}`,
       `• 분리 ${sep} · 배려 ${care}`,
     ];
 
@@ -275,7 +284,7 @@ console.log('class-assign webapp v3.4.2 loaded');
   }
 
   // 설정 변화 시 요약 갱신
-  [classCountEl, iterationsEl, specialModeEl, multiModeEl, adhdCapEl, sepStrengthEl, careStrengthEl, wAcad, wPeer, wParent, wMulti]
+  [classCountEl, genderBalanceEl, iterModeEl, specialModeEl, multiModeEl, adhdCapEl, sepStrengthEl, careStrengthEl, wAcad, wPeer, wParent, wMulti]
     .filter(Boolean)
     .forEach(el=>{
       el.addEventListener("change", renderSettingsSummary);
@@ -555,16 +564,24 @@ console.log('class-assign webapp v3.4.2 loaded');
     const vPeer = variance(peerSum);
     const vParent = variance(parentSum);
 
-    // 성비는 현장에서는 1순위로 중요해요. '분산(분산도)'만 보지 말고,
-    // 각 반의 인원수에 비례한 '기대 남학생 수'에서 얼마나 벗어났는지(제곱오차)를 크게 벌점 줍니다.
+    // 성비(남/여 균형): 설정(미적용/보통/강)에 따라 반영 강도를 조절합니다.
+    // - 미적용(off): 성비 벌점 적용하지 않음
+    // - 보통(medium): '기대 남학생 수'에서 벗어난 정도(제곱오차)를 반영
+    // - 강(strong): 보통 + 반별 편차가 1을 넘어가는 경우(±1 초과) 큰 벌점 부여
     const totalMale = male.reduce((a,b)=>a+b,0);
     const total = rows.length || 1;
     const maleRatio = totalMale / total;
+
     let genderSqErr = 0;
+    let genderHardErr = 0;
     for (let c=0;c<C;c++){
       const expectedMale = cnt[c] * maleRatio;
       const d = male[c] - expectedMale;
       genderSqErr += d*d;
+
+      // 강 모드: ±1을 넘어가는 편차는 크게 벌점
+      const excess = Math.max(0, Math.abs(d) - 1);
+      genderHardErr += excess*excess;
     }
 
     // 2순위: 특수(가능하면 0~1명/반). 설정(미적용/보통/강)에 따라 반영 강도를 조절합니다.
@@ -627,7 +644,8 @@ console.log('class-assign webapp v3.4.2 loaded');
 
     let score =
       80*vCnt +
-      260*genderSqErr +
+      (weights.genderMode==="off" ? 0 : (weights.genderMode==="medium" ? 180 : 260) * genderSqErr) +
+      (weights.genderMode==="strong" ? 120000*genderHardErr : 0) +
       (800*specialModeK)*specSqErr +
       (6000*specialModeK)*specOverflow +
       350*adhdSqErr +
@@ -927,7 +945,7 @@ console.log('class-assign webapp v3.4.2 loaded');
     }catch(e){}
 
     const classCount = Math.max(2, Math.min(30, parseInt(classCountEl.value||"10",10)));
-    const iterations = Math.max(200, Math.min(60000, parseInt(iterationsEl.value||"8000",10)));
+    const iterations = iterModeToIterations(iterModeEl ? iterModeEl.value : "medium");
     const seed = (()=>{
       try{
         const a = new Uint32Array(1);
@@ -949,7 +967,8 @@ console.log('class-assign webapp v3.4.2 loaded');
       adhdMode: (adhdCapEl ? String(adhdCapEl.value||"off") : "off"),
       // 특수학생 배정(3단계): 미적용/보통/강
       specialMode: (specialModeEl ? String(specialModeEl.value||"medium") : "medium"),
-      multiMode: (multiModeEl ? String(multiModeEl.value||"off") : "off")
+      multiMode: (multiModeEl ? String(multiModeEl.value||"off") : "off"),
+      genderMode: (genderBalanceEl ? String(genderBalanceEl.value||"strong") : "strong")
     };
 
     let payload = null;
@@ -991,7 +1010,7 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
     });
 
     const payload = {
-      meta: { total: studentRows.length, classCount, iterations, seed, elapsedMs, weights, sepStrength: sepStrengthEl.value, careStrength: careStrengthEl.value },
+      meta: { total: studentRows.length, classCount, iterations, seed, elapsedMs, weights, sepStrength: sepStrengthEl.value, careStrength: careStrengthEl.value, genderMode: (genderBalanceEl?genderBalanceEl.value:"strong") },
       best: { score: best.score, sepPairs: best.sepViol, carePairs: best.careMiss, sepStudents: unsat.sepStudents, careStudents: unsat.careStudents },
       arrays: { cnt: best.cnt, male: best.male, female: best.female, spec: best.spec, adhd: best.adhd, multi: best.multi },
       resultRows,
