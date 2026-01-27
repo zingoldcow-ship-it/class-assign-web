@@ -1208,7 +1208,7 @@ sepPill.textContent = `분리 미충족: ${payload.best.sepStudents.toLocaleStri
 
       // ----- 추가 리포트: 학부모민원/학업성취/교우관계 (토글 탭) -----
       html += `<div style="height:14px"></div>`;
-      html += `<div class="small"><b>3단계 요약(토글)</b></div>`;
+      html += `<div class="small"><b>설정 별 요약(버튼 클릭)</b></div>`;
       html += `
         <div class="tabs" style="margin-top:10px" id="levelTabs">
           <button type="button" class="tabBtn active" data-target="parent">학부모민원</button>
