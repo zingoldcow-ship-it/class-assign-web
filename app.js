@@ -1011,7 +1011,7 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
 
   // ===== Result Tab Rendering =====
   const metaPill = document.getElementById("metaPill");
-  const scorePill = document.getElementById("scorePill");
+  const scorePill = document.getElementById("scorePill"); // may be null (hidden in UI)
   const sepPill = document.getElementById("sepPill");
   const carePill = document.getElementById("carePill");
   const classSummary = document.getElementById("classSummary");
@@ -1027,8 +1027,10 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
 
   function renderResult(payload){
     metaPill.textContent = `${payload.meta.total}명 · ${payload.meta.classCount}반 · ${payload.meta.iterations.toLocaleString()}회 · ${payload.meta.elapsedMs.toLocaleString()}ms`;
-    scorePill.textContent = `Score: ${Math.round(payload.best.score).toLocaleString()}`;
-    sepPill.textContent = `분리 미충족: ${payload.best.sepStudents.toLocaleString()}명 (위반 ${payload.best.sepPairs.toLocaleString()}쌍)`;
+    if (scorePill){
+      scorePill.textContent = `Score: ${Math.round(payload.best.score).toLocaleString()}`;
+    }
+sepPill.textContent = `분리 미충족: ${payload.best.sepStudents.toLocaleString()}명 (위반 ${payload.best.sepPairs.toLocaleString()}쌍)`;
     carePill.textContent = `배려 미충족: ${payload.best.careStudents.toLocaleString()}명 (미충족 ${payload.best.carePairs.toLocaleString()}쌍)`;
 
     function renderUnsatisfiedTables(){

@@ -17,7 +17,7 @@
     .pill{font-size:12px;border:1px solid rgba(15,23,42,.14);padding:6px 10px;border-radius:999px;color:var(--muted);background:rgba(15,23,42,.02)}
     .pill.ok{border-color:rgba(34,197,94,.45);background:rgba(34,197,94,.12);color:var(--text)}
     .pill.total{border-color:rgba(37,99,235,.35);background:rgba(37,99,235,.10);color:var(--text)}
-    .pill.warn{border-color:rgba(255,107,107,.55);color:#ffd7d7}
+    .pill.warn{border-color:rgba(255,107,107,.55);color:#b42318;background:rgba(255,107,107,.10)}
     /* Big split tabs (화면 양분 형태) */
     .tabs{display:flex;gap:12px;margin-top:12px;}
     .tabBtn{
@@ -338,12 +338,12 @@
                 <span class="helpIcon" aria-hidden="true"></span><span>자세히</span>
               </button>
             </div>
-            <div id="help-adhd" class="helpText small" hidden>• <b>자동</b>: 제한 없이 계산하되, 가능한 한 반별로 고르게 분산되도록 우선합니다.<br/>• 직접 숫자를 선택하면 그 값 이상으로 배정되지 않도록 제약을 적용합니다(불가능한 경우는 최대한 근접).</div>
+            <div id="help-adhd" class="helpText small" hidden>• 엑셀에 <b>ADHD여부</b> 열이 있으면 Y/N로 인식합니다.<br/>• <b>보통</b>: 가능한 한 반별로 고르게 분산되도록 우선합니다.<br/>• <b>강</b>: 분산을 더 강하게 반영합니다.</div>
 
-            <label>5-2. <strong style='font-size:1.05em'>특수학생 배정</strong>(3단계)</label>
+            <label>2. <strong style='font-size:1.05em'>특수학생 배정(3단계)</strong></label>
             <select id="specialMode">
-              <option value="off">미적용</option>
-              <option value="medium" selected>보통 (가급적 반별 균등 분산)</option>
+              <option value="off" selected>미적용</option>
+              <option value="medium">보통 (가급적 반별 균등 분산)</option>
               <option value="strong">강 (가능한 한 균등 분산)</option>
             </select>
             <div class="helpRow">
@@ -354,7 +354,7 @@
             <div id="help-special" class="helpText small" hidden>엑셀에 <b>특수여부</b> 열이 있으면 Y/N로 인식합니다.<br/>열이 없으면 모두 N으로 처리합니다.</div>
             <div class="divider"></div>
 
-            <label>6. <strong style='font-size:1.05em'>다문화학생 배정</strong>(3단계)</label>
+            <label>3. <strong style='font-size:1.05em'>다문화학생 배정(3단계)</strong></label>
             <select id="multiMode">
               <option value="off" selected>미적용</option>
               <option value="medium">보통 (가급적 반별 균등 분산)</option>
@@ -368,7 +368,7 @@
             <div id="help-multi" class="helpText small" hidden>엑셀에 <b>다문화여부</b> 열이 있으면 Y/N로 인식합니다.<br/>열이 없으면 모두 N으로 처리합니다.</div>
             <div class="divider"></div>
 
-            <label>7. <strong style='font-size:1.05em'>분리요청 강도</strong>(같은 반이 되면 안 됨)</label>
+            <label>4. <strong style='font-size:1.05em'>분리요청 강도</strong><br><span class='subNote'>(같은 반이 되면 안 됨)</span></label>
             <select id="sepStrength">
               <option value="strict">엄격 (원칙적으로 같은 반 배정 금지)</option>
               <option value="strong" selected>강 (최대한 다른 반으로 분산)</option>
@@ -377,7 +377,7 @@
             </select>
 
             <div style="margin-top:10px">
-              <label>8. <strong style='font-size:1.05em'>배려요청 강도</strong>(같은 반이 되면 좋음)</label>
+              <label>5. <strong style='font-size:1.05em'>배려요청 강도</strong><br><span class='subNote'>(같은 반이 되면 좋음)</span></label>
               <select id="careStrength">
                 <option value="strict">엄격 (가능한 한 같은 반으로 배정)</option>
                 <option value="strong" selected>강 (최대한 같은 반으로 배정)</option>
@@ -436,8 +436,7 @@
         <div class="row" style="justify-content:space-between;">
           <div class="row">
             <span class="pill ok" id="metaPill">-</span>
-            <span class="pill" id="scorePill">Score: -</span>
-            <span class="pill warn" id="sepPill">분리 위반: -</span>
+<span class="pill warn" id="sepPill">분리 위반: -</span>
             <span class="pill" id="carePill">배려 미충족: -</span>
           </div>
           <div class="row">
