@@ -102,6 +102,9 @@
     
     .mintBtn{background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.35);color:var(--text)}
     .mintBtn:hover{background:rgba(16,185,129,.18)}
+    /* Light pink upload button */
+    .pinkBtn{background:rgba(244,114,182,.18);border:1px solid rgba(244,114,182,.40);color:var(--text)}
+    .pinkBtn:hover{background:rgba(244,114,182,.24)}
 .homeIcon{width:16px;height:16px;display:inline-block}
 
     /* Accordion (설정 섹션 접기) */
@@ -292,12 +295,12 @@
     </div>
 
     <div class="introSection">
-      <h2 class="panelTitle">안내</h2>
+      <div class="howtoTitleWrap" style="margin-bottom:10px"><div class="t">안내</div></div>
       <div class="small">• 결과는 <b>“결과” 탭</b>에서 확인합니다.<br/>• 아이콘 안내: 🧩 특수 │ 🌏 다문화 │ 🧠 ADHD │ 🔗 분리요청 │ 🤝 배려요청</div>
     </div>
 
     <div class="introSection">
-      <h2 class="panelTitle">샘플 양식</h2>
+      <div class="howtoTitleWrap" style="margin-bottom:10px"><div class="t">샘플 양식</div></div>
       <div class="small">처음 사용하시면 위 양식을 내려받아 <b>열 이름/형식을 유지하며 작성해주세요.</b></div><div class="small" style="margin-top:6px;color:var(--subtle);">모든 칸을 다 채우지 않아도 됩니다. <b>입력 가능한 항목만</b> 작성해도 실행할 수 있어요.</div>
     </div>
 
@@ -319,9 +322,8 @@
     <div class="app">
       <aside class="card" style="position:sticky; top:120px;">
         <h2 class="panelTitle">⚙️ 설정</h2>
-        <label>학생 데이터 엑셀(.xlsx)</label>
         <input id="fileInput" class="fileInputHidden" type="file" accept=".xlsx" />
-        <button id="fileBtn" type="button" class="btnSecondary">엑셀 업로드</button>
+        <button id="fileBtn" type="button" class="btnSecondary pinkBtn"><span class="btnIcon" aria-hidden="true">⭡</span> 학생 데이터 업로드(.xlsx)</button>
         <div class="asideScroll">
         <!-- ① 기본 설정 (초기: 닫힘) -->
         <details class="acc" id="accBasic">
@@ -369,8 +371,8 @@
             <label>1. <strong style='font-size:1.05em'>ADHD 학생 배정(3단계)</strong></label>
             <select id="adhdCap">
               <option value="off" selected>미적용</option>
-              <option value="normal">보통</option>
-              <option value="strong">강</option>
+              <option value="normal">보통 (가급적 반별 균등 분산)</option>
+              <option value="strong">강 (가능한 한 균등 분산)</option>
             </select>
             <div class="helpRow">
               <button type="button" class="helpBtn" data-help="help-adhd">
