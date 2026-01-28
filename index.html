@@ -473,7 +473,23 @@
             <div id="help-multi" class="helpText small" hidden>엑셀에 <b>다문화여부</b> 열이 있으면 Y/N로 인식합니다.<br/>열이 없으면 모두 N으로 처리합니다.</div>
             <div class="divider"></div>
 
-            <label>4. <strong style='font-size:1.05em'>분리요청 강도</strong><br><span class='subNote'>(같은 반이 되면 안 됨)</span></label>
+
+            <label>4. <strong style='font-size:1.05em'>학폭(가해) 학생 배정(3단계)</strong></label>
+            <select id="bullyMode">
+              <option value="off" selected>미적용</option>
+              <option value="medium">보통 (가급적 반별 분산 · 1반 1명 권장)</option>
+              <option value="strong">강 (가능한 한 반별 분산 · 1반 1명 우선)</option>
+            </select>
+            <div class="helpRow">
+              <button type="button" class="helpBtn" data-help="help-bully">
+                <span class="helpIcon" aria-hidden="true"></span><span>자세히</span>
+              </button>
+            </div>
+            <div id="help-bully" class="helpText small" hidden>엑셀에 <b>학폭여부</b> 열이 있으면 Y/N로 인식합니다.<br/>• <b>보통</b>: 가능한 한 반별로 분산되도록 우선합니다.<br/>• <b>강</b>: 분산을 더 강하게 반영하며, 1반 1명을 최대한 지키도록 우선합니다.</div>
+            <div class="divider"></div>
+
+
+            <label>5. <strong style='font-size:1.05em'>분리요청 강도</strong><br><span class='subNote'>(같은 반이 되면 안 됨)</span></label>
             <select id="sepStrength">
               <option value="strict">엄격 (원칙적으로 같은 반 배정 금지)</option>
               <option value="strong" selected>강 (최대한 다른 반으로 분산)</option>
@@ -482,7 +498,7 @@
             </select>
 
             <div style="margin-top:10px">
-              <label>5. <strong style='font-size:1.05em'>배려요청 강도</strong><br><span class='subNote'>(같은 반이 되면 좋음)</span></label>
+              <label>6. <strong style='font-size:1.05em'>배려요청 강도</strong><br><span class='subNote'>(같은 반이 되면 좋음)</span></label>
               <select id="careStrength">
                 <option value="strict">엄격 (가능한 한 같은 반으로 배정)</option>
                 <option value="strong" selected>강 (최대한 같은 반으로 배정)</option>

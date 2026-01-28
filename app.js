@@ -62,6 +62,7 @@ console.log('class-assign webapp v3.4.2 loaded');
     "다문화여부": ["다문화여부","다문화","다문화학생","다문화여부(Y/N)"],
     "특수여부": ["특수여부","특수","특수학급","특수대상","특수교육대상","특수유무"],
     "ADHD여부": ["ADHD여부","ADHD","adhd여부","주의력결핍","주의력","ADHD유무"],
+    "학폭여부": ["학폭여부","학폭","학교폭력","학교폭력여부","학폭유무","폭력여부","가해여부","학폭(가해)여부"],
     "생년월일": ["생년월일","생년","생일","출생일","출생","생년월일(yyyy-mm-dd)","생년월일(YYYY-MM-DD)"],
     "분리요청학생": ["분리요청학생","분리요청코드","분리코드","분리요청","분리","분리요청 코드"],
     "배려요청학생": ["배려요청학생","배려요청코드","배려코드","배려요청","배려","배려요청 코드"],
@@ -183,6 +184,7 @@ console.log('class-assign webapp v3.4.2 loaded');
   const adhdCapEl = document.getElementById("adhdCap");
   const specialModeEl = document.getElementById("specialMode");
   const multiModeEl = document.getElementById("multiMode");
+  const bullyModeEl = document.getElementById("bullyMode");
   const runBtn = document.getElementById("runBtn");
 
   // ----- Help toggle (v4.1.1) -----
@@ -269,13 +271,14 @@ console.log('class-assign webapp v3.4.2 loaded');
     const gb = labelOfSelect(genderBalanceEl);
     const sm = labelOfSelect(specialModeEl);
     const mm = labelOfSelect(multiModeEl);
+    const bm = labelOfSelect(bullyModeEl);
     const ad = labelOfSelect(adhdCapEl);
     const sep = labelOfSelect(sepStrengthEl);
     const care = labelOfSelect(careStrengthEl);
 
     const lines = [
       `• 반 ${cc}개 · 시뮬레이션 ${itLabel}`,
-      `• 성비 ${gb} · 특수 ${sm} · 다문화 ${mm} · ADHD ${ad}`,
+      `• 성비 ${gb} · 특수 ${sm} · 다문화 ${mm} · 학폭 ${bm} · ADHD ${ad}`,
       `• 분리 ${sep} · 배려 ${care}`,
     ];
 
@@ -284,7 +287,7 @@ console.log('class-assign webapp v3.4.2 loaded');
   }
 
   // 설정 변화 시 요약 갱신
-  [classCountEl, genderBalanceEl, iterModeEl, specialModeEl, multiModeEl, adhdCapEl, sepStrengthEl, careStrengthEl, wAcad, wPeer, wParent, wMulti]
+  [classCountEl, genderBalanceEl, iterModeEl, specialModeEl, multiModeEl, bullyModeEl, adhdCapEl, sepStrengthEl, careStrengthEl, wAcad, wPeer, wParent, wMulti]
     .filter(Boolean)
     .forEach(el=>{
       el.addEventListener("change", renderSettingsSummary);
@@ -330,11 +333,13 @@ console.log('class-assign webapp v3.4.2 loaded');
     adhd: "🧠",
     sep: "🔗",
     care: "🤝",
+    bully: "🛡️",
   };
   const ICON_COL_MAP = {
     "특수여부": { kind: "special", label: "특수" },
     "다문화여부": { kind: "multi", label: "다문화" },
     "ADHD여부": { kind: "adhd", label: "ADHD" },
+    "학폭여부": { kind: "bully", label: "학폭" },
     "분리요청학생": { kind: "sep", label: "분리" },
     "배려요청학생": { kind: "care", label: "배려" },
   };
@@ -461,6 +466,7 @@ console.log('class-assign webapp v3.4.2 loaded');
     const specN = rows.reduce((a,r)=>a+r.special,0);
     const adhdN = rows.reduce((a,r)=>a+r.adhd,0);
     const multiN = rows.reduce((a,r)=>a+(r.multi||0),0);
+    const bullyN = rows.reduce((a,r)=>a+(r.bully||0),0);
     statsDiv.innerHTML = `
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
         <span class="pill total">총 ${n}명</span>
@@ -468,6 +474,7 @@ console.log('class-assign webapp v3.4.2 loaded');
         <span class="pill">특수 ${specN}</span>
         <span class="pill">ADHD ${adhdN}</span>
         <span class="pill">다문화 ${multiN}</span>
+        <span class="pill">학폭 ${bullyN}</span>
         <span class="pill">분리학생 ${rows.reduce((a,r)=>a+(r.sepCodes.length>0),0)}명</span>
         <span class="pill">배려학생 ${rows.reduce((a,r)=>a+(r.careCodes.length>0),0)}명</span>
       </div>
@@ -491,6 +498,7 @@ console.log('class-assign webapp v3.4.2 loaded');
     const special = ynTo01(r["특수여부"]||r["특수"]||r["특수여부(Y/N)"]);
     const adhd = ynTo01(r["ADHD여부"]||r["adhd여부"]||r["ADHD"]||r["ADHD여부(Y/N)"]);
     const multi = ynTo01(r["다문화여부"]||r["다문화"]||r["다문화학생"]||r["다문화여부(Y/N)"]);
+    const bully = ynTo01(r["학폭여부"]||r["학폭"]||r["학교폭력"]||r["학교폭력여부"]||r["학폭(가해)여부"]);
     const note = safeString(r["비고"]||r["특이사항"]||r["메모"]);
         const sepCodes = splitCodes(r["분리요청학생"]||r["분리요청학생"]||r["분리코드"]||r["분리"]);
         const careCodes = splitCodes(r["배려요청학생"]||r["배려요청학생"]||r["배려코드"]||r["배려"]);
@@ -619,6 +627,7 @@ console.log('class-assign webapp v3.4.2 loaded');
     const spec = new Array(C).fill(0);
     const adhd = new Array(C).fill(0);
     const multi = new Array(C).fill(0);
+    const bully = new Array(C).fill(0);
     const acadSum = new Array(C).fill(0);
     const peerSum = new Array(C).fill(0);
     const parentSum = new Array(C).fill(0);
@@ -631,6 +640,7 @@ console.log('class-assign webapp v3.4.2 loaded');
       spec[c] += rows[i].special;
       adhd[c] += rows[i].adhd;
       multi[c] += (rows[i].multi||0);
+      bully[c] += (rows[i].bully||0);
       acadSum[c] += rows[i].acadS;
       peerSum[c] += rows[i].peerS;
       parentSum[c] += rows[i].parentS;
@@ -723,6 +733,20 @@ console.log('class-assign webapp v3.4.2 loaded');
       const d = multi[c] - multiExpected;
       multiSqErr += d*d;
     }
+    
+    const totalBully = bully.reduce((a,b)=>a+b,0);
+    const bullyExpected = totalBully / (C || 1);
+    let bullySqErr = 0;
+    let bullyOverflow = 0; // >1 per class
+    for (let c=0;c<C;c++){
+      const d = bully[c] - bullyExpected;
+      bullySqErr += d*d;
+      if (bully[c] > 1) bullyOverflow += (bully[c]-1);
+    }
+    const bullyMode = (weights && weights.bullyMode) ? String(weights.bullyMode) : "off";
+    const bullyModeK = (bullyMode==="strong") ? 900 : (bullyMode==="medium") ? 450 : 0;
+    const bullyHardK = (bullyMode==="strong") ? 1 : 0;
+
     const multiMode = (weights && weights.multiMode) ? String(weights.multiMode) : "off";
     const multiModeK = (multiMode==="strong") ? 700 : (multiMode==="medium") ? 300 : 0;
     const specialMode = (weights && weights.specialMode) ? String(weights.specialMode) : "medium";
@@ -738,7 +762,10 @@ console.log('class-assign webapp v3.4.2 loaded');
       2500*adhdOverflow +
       // 하드캡은 다른 항목보다 우선해서 지키도록 큰 벌점
       2000000*adhdHardCapOverflow +
-      (multiModeK * multiSqErr) +      weights.wParent*vParent +
+      (multiModeK * multiSqErr) +
+      (bullyModeK * bullySqErr) +
+      (8000*bullyHardK)*bullyOverflow +
+      weights.wParent*vParent +
       weights.wAcad*vAcad +
       weights.wPeer*vPeer;
 
@@ -1054,6 +1081,7 @@ console.log('class-assign webapp v3.4.2 loaded');
       // 특수학생 배정(3단계): 미적용/보통/강
       specialMode: (specialModeEl ? String(specialModeEl.value||"medium") : "medium"),
       multiMode: (multiModeEl ? String(multiModeEl.value||"off") : "off"),
+      bullyMode: (bullyModeEl ? String(bullyModeEl.value||"off") : "off"),
       genderMode: (genderBalanceEl ? String(genderBalanceEl.value||"strong") : "strong")
     };
 
@@ -1085,6 +1113,7 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
       base["특수여부"] = r.special ? "Y" : "N";
       base["ADHD여부"] = r.adhd ? "Y" : "N";
       base["다문화여부"] = r.multi ? "Y" : "N";
+      base["학폭여부"] = r.bully ? "Y" : "N";
       base["비고"] = r.note;
 
       // 분리/배려는 '학생' 표기로 통일하여 하나의 열만 남깁니다.
@@ -1529,6 +1558,7 @@ sepPill.textContent = `분리 미충족: ${payload.best.sepStudents.toLocaleStri
         ["배려강도", payload.meta.careStrength],
         ["특수 적용", payload.meta.weights.specialMode],
         ["다문화 적용", payload.meta.weights.multiMode],
+        ["학폭 적용", payload.meta.weights.bullyMode],
         ["분리 미충족(명)", payload.best.sepStudents],
         ["배려 미충족(명)", payload.best.careStudents],
         ["분리 위반(쌍)", payload.best.sepPairs],
