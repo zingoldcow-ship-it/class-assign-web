@@ -170,7 +170,9 @@
   
     /* Intro guide */
     .guideList{margin:10px 0 0 20px;padding:0;}
-    .guideList li{margin:10px 0;line-height:1.5;}
+    /* 시작화면 '앱 사용방법' 가독성 강화: 번호 라인은 볼드, 설명(가중치/분리/배려) 부분은 일반 두께 */
+    .guideList > li{margin:10px 0;line-height:1.5;font-weight:700;}
+    .guideList > li .small{font-weight:400;}
     .btnRow{display:flex;gap:10px;flex-wrap:wrap;}
 
     /* Intro sections to reduce "all text" feel */
@@ -304,7 +306,8 @@
           설정(반 개수/가중치/분리·배려 강도)
           <div class="small" style="margin-top:6px">
             • <b>가중치</b>: 학업/교우관계/민원 등 여러 기준 중 무엇을 더 우선할지 정합니다. 값이 높을수록 해당 기준이 더 많이 반영됩니다.<br/>
-            • <b>분리 강도</b>: 강도가 높을수록 <b>분리요청을 한 학생은 가능한 한 다른 반</b>으로 배정합니다. 예) A학생과 B학생이 같은 분리요청 그룹이면, <b>서로 다른 반</b>이 되도록 우선합니다.<br/>• <b>배려 강도</b>: 강도가 높을수록 <b>배려요청을 한 학생은 가능한 한 같은 반</b>으로 배정합니다. 예) C학생과 D학생이 같은 배려요청 그룹이면, <b>같은 반</b>이 되도록 우선합니다.
+            • <b>분리 강도</b>: 강도가 높을수록 <b>분리요청을 한 학생은 가능한 한 다른 반</b>으로 배정합니다. 예) A학생이 B학생과 분리 요청을 했다면, <b>서로 다른 반</b>이 되도록 적용합니다.<br/>
+            • <b>배려 강도</b>: 강도가 높을수록 <b>배려요청을 한 학생은 가능한 한 같은 반</b>으로 배정합니다. 예) C학생이 D학생과 같은 반이 되도록 요청했다면, <b>같은 반</b>이 되도록 적용합니다.
           </div>
         </li>
         <li>반배정 실행</li>
@@ -321,7 +324,12 @@
 
     <div class="introSection">
       <div class="sectionTitle" style="margin-bottom:10px">샘플 양식</div>
-      <div class="innerCard"><div class="small">처음 사용하시면 위 양식을 내려받아 <b>열 이름/형식을 유지하며 작성해주세요.</b></div><div class="small" style="margin-top:6px;color:var(--subtle);">모든 칸을 다 채우지 않아도 됩니다. <b>입력 가능한 항목만</b> 작성해도 실행할 수 있어요.</div></div>
+      <div class="innerCard">
+        <div class="small">
+          • 처음 사용하시면 위 양식을 내려받아 <b>열 이름/형식을 유지하며 작성해주세요.</b><br/>
+          <span style="color:var(--subtle)">• 모든 칸을 다 채우지 않아도 됩니다. <b>입력 가능한 항목만</b> 작성해도 실행할 수 있어요.</span>
+        </div>
+      </div>
     </div>
 
     <div class="introActions">
