@@ -358,8 +358,16 @@ console.log('class-assign webapp v3.4.2 loaded');
     if (v === "Y" || v === "1" || v === "TRUE") return 1;
     return 0;
   }
-  function level3ToScore(x){
+  function normalizeLevel3(x){
     const v = safeString(x);
+    // 허용 입력: 좋음/보통/나쁨, 상/중/하 (기존 양식 호환)
+    if (v === "좋음" || v === "상") return "좋음";
+    if (v === "보통" || v === "중") return "보통";
+    if (v === "나쁨" || v === "하") return "나쁨";
+    return "";
+  }
+  function level3ToScore(x){
+    const v = normalizeLevel3(x);
     if (v === "좋음") return 1;
     if (v === "보통") return 0;
     if (v === "나쁨") return -1;
@@ -1231,7 +1239,7 @@ sepPill.textContent = `분리 미충족: ${payload.best.sepStudents.toLocaleStri
         for (const r of rows){
           const cls = Math.max(1, parseInt(r["반"],10)) - 1;
           if (cls < 0 || cls >= C) continue;
-          const v = safeString(r[field]);
+          const v = normalizeLevel3(r[field]);
           if (v === "좋음") buckets[cls].good++;
           else if (v === "나쁨") buckets[cls].bad++;
           else buckets[cls].normal++;
