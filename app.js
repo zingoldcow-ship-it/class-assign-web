@@ -512,6 +512,7 @@ console.log('class-assign webapp v3.4.2 loaded');
       peerS: level3ToScore(peer),
       parentS: level3ToScore(parent),
       special, adhd, multi,
+      bully,
       note,
       sepCodes, careCodes
     };
@@ -797,7 +798,7 @@ console.log('class-assign webapp v3.4.2 loaded');
     }
     score += weights.carePenalty * careMiss;
 
-    return {score, sepViol, careMiss, cnt, male, female, spec, adhd, multi, acadSum, peerSum, parentSum};
+    return {score, sepViol, careMiss, cnt, male, female, spec, adhd, multi, bully, acadSum, peerSum, parentSum};
 
   }
 
@@ -1127,7 +1128,7 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
     const payload = {
       meta: { total: studentRows.length, classCount, iterations, seed, elapsedMs, weights, sepStrength: sepStrengthEl.value, careStrength: careStrengthEl.value, genderMode: (genderBalanceEl?genderBalanceEl.value:"strong") },
       best: { score: best.score, sepPairs: best.sepViol, carePairs: best.careMiss, sepStudents: unsat.sepStudents, careStudents: unsat.careStudents },
-      arrays: { cnt: best.cnt, male: best.male, female: best.female, spec: best.spec, adhd: best.adhd, multi: best.multi },
+      arrays: { cnt: best.cnt, male: best.male, female: best.female, spec: best.spec, adhd: best.adhd, multi: best.multi, bully: best.bully },
       resultRows,
       unsatisfied: { sepItems: unsat.sepItems, careItems: unsat.careItems }
     };
@@ -1215,9 +1216,9 @@ sepPill.textContent = `분리 미충족: ${payload.best.sepStudents.toLocaleStri
 
     function renderClassSummary(){
       const C = payload.meta.classCount;
-      const {cnt, male, female, spec, adhd, multi} = payload.arrays;
+      const {cnt, male, female, spec, adhd, multi, bully} = payload.arrays;
 
-      let html = "<div style='overflow:auto'><table><thead><tr><th>반</th><th>인원</th><th>남</th><th>여</th><th>특수</th><th>ADHD</th><th>다문화</th></tr></thead><tbody>";
+      let html = "<div style='overflow:auto'><table><thead><tr><th>반</th><th>인원</th><th>남</th><th>여</th><th>특수</th><th>ADHD</th><th>다문화</th><th>학폭</th></tr></thead><tbody>";
       for (let c=0;c<C;c++){
         html += `<tr><td>${c+1}</td><td>${cnt[c]}</td><td>${male[c]}</td><td>${female[c]}</td><td>${spec[c]}</td><td>${adhd[c]}</td><td>${(multi?multi[c]:0)}</td></tr>`;
       }
