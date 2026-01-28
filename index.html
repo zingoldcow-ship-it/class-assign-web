@@ -97,7 +97,7 @@
 
     /* Header home button */
     .headerTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
-    .homeBtn{display:inline-flex;align-items:center;gap:8px;background:rgba(37,99,235,.10);border:1px solid rgba(37,99,235,.25);color:var(--text);padding:8px 10px;border-radius:999px;cursor:pointer;font-weight:900;}
+    .homeBtn{display:inline-flex;align-items:center;gap:10px;background:rgba(37,99,235,.10);border:1px solid rgba(37,99,235,.25);color:var(--text);padding:12px 14px;border-radius:999px;cursor:pointer;font-weight:950;font-size:16px;}
     .homeBtn:hover{background:rgba(37,99,235,.14)}
     
     .mintBtn{background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.35);color:var(--text)}
@@ -105,7 +105,7 @@
     /* Light pink upload button */
     .pinkBtn{background:rgba(244,114,182,.18);border:1px solid rgba(244,114,182,.40);color:var(--text)}
     .pinkBtn:hover{background:rgba(244,114,182,.24)}
-.homeIcon{width:16px;height:16px;display:inline-block}
+.homeIcon{width:22px;height:22px;display:inline-block}
 
     /* Accordion (설정 섹션 접기) */
     .acc{border:1px solid rgba(15,23,42,.10);border-radius:14px;background:rgba(15,23,42,.03);padding:10px 12px;margin:10px 0;}
@@ -296,7 +296,7 @@
   <div class="card">
     <div class="introSection howtoCard">
       <div class="sectionTitle" aria-label="앱 사용방법">앱 사용방법</div>
-      <ol class="guideList">
+      <div class="innerCard"><ol class="guideList">
         <li>샘플 양식에 학생 정보를 입력</li>
         <li>실행 화면으로 이동</li>
         <li>엑셀(.xlsx) 업로드</li>
@@ -309,7 +309,7 @@
         </li>
         <li>반배정 실행</li>
         <li>결과 확인 및 엑셀 다운로드</li>
-      </ol>
+      </ol></div>
     </div>
 
     <div class="introSection">
@@ -321,7 +321,7 @@
 
     <div class="introSection">
       <div class="sectionTitle" style="margin-bottom:10px">샘플 양식</div>
-      <div class="small">처음 사용하시면 위 양식을 내려받아 <b>열 이름/형식을 유지하며 작성해주세요.</b></div><div class="small" style="margin-top:6px;color:var(--subtle);">모든 칸을 다 채우지 않아도 됩니다. <b>입력 가능한 항목만</b> 작성해도 실행할 수 있어요.</div>
+      <div class="innerCard"><div class="small">처음 사용하시면 위 양식을 내려받아 <b>열 이름/형식을 유지하며 작성해주세요.</b></div><div class="small" style="margin-top:6px;color:var(--subtle);">모든 칸을 다 채우지 않아도 됩니다. <b>입력 가능한 항목만</b> 작성해도 실행할 수 있어요.</div></div>
     </div>
 
     <div class="introActions">
@@ -465,7 +465,7 @@
         </div>
         <div class="stickyRun">
           <button id="runBtn" type="button" disabled>반배정 실행 → 결과 탭 보기</button>
-          <div class="tip">결과가 마음에 안 들면 설정을 조금 조정하거나 다시 실행해 보세요.</div>
+          <div class="tip">결과가 마음에 안 들면 설정을 조금 조정하거나 다시 실행해 보세요 😊</div>
         </div>
       </aside>
 
