@@ -1220,7 +1220,7 @@ sepPill.textContent = `분리 미충족: ${payload.best.sepStudents.toLocaleStri
 
       let html = "<div style='overflow:auto'><table><thead><tr><th>반</th><th>인원</th><th>남</th><th>여</th><th>특수</th><th>ADHD</th><th>다문화</th><th>학폭</th></tr></thead><tbody>";
       for (let c=0;c<C;c++){
-        html += `<tr><td>${c+1}</td><td>${cnt[c]}</td><td>${male[c]}</td><td>${female[c]}</td><td>${spec[c]}</td><td>${adhd[c]}</td><td>${(multi?multi[c]:0)}</td></tr>`;
+        html += `<tr><td>${c+1}</td><td>${cnt[c]}</td><td>${male[c]}</td><td>${female[c]}</td><td>${spec[c]}</td><td>${adhd[c]}</td><td>${(multi?multi[c]:0)}</td><td>${(bully?bully[c]:0)}</td></tr>`;
       }
       html += "</tbody></table></div>";
       classSummary.innerHTML = html;
