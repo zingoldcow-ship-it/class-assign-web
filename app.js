@@ -466,7 +466,13 @@ console.log('class-assign webapp v3.4.2 loaded');
     const specN = rows.reduce((a,r)=>a+r.special,0);
     const adhdN = rows.reduce((a,r)=>a+r.adhd,0);
     const multiN = rows.reduce((a,r)=>a+(r.multi||0),0);
-    const bullyN = rows.reduce((a,r)=>a+(r.bully||0),0);
+    // 학폭여부는 일부 파일에서 헤더/값 표기가 달라 r.bully가 0으로만 잡힐 수 있어 fallback 집계 포함
+    const bullyN1 = rows.reduce((a,r)=>a+(r.bully||0),0);
+    const bullyN2 = rows.reduce((a,r)=>{
+      const v = safeString(r?._raw?.["학폭여부"] || r?._raw?.["학폭"] || r?._raw?.["학교폭력여부"] || r?._raw?.["학교폭력"]);
+      return a + ((ynTo01(v) || v.toUpperCase()==="O") ? 1 : 0);
+    },0);
+    const bullyN = Math.max(bullyN1, bullyN2);
     statsDiv.innerHTML = `
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
         <span class="pill total">총 ${n}명</span>
@@ -1218,12 +1224,59 @@ sepPill.textContent = `분리 미충족: ${payload.best.sepStudents.toLocaleStri
       const C = payload.meta.classCount;
       const {cnt, male, female, spec, adhd, multi, bully} = payload.arrays;
 
-      let html = "<div style='overflow:auto'><table><thead><tr><th>반</th><th>인원</th><th>남</th><th>여</th><th>특수</th><th>ADHD</th><th>다문화</th><th>학폭</th></tr></thead><tbody>";
+      // Fallback: 일부 파일/버전에서 bully 배열이 누락되거나 값이 비정상(빈칸)으로 보이는 경우가 있어,
+      // 결과 행(resultRows)의 '학폭여부' 값을 기반으로 반별 학폭 인원을 다시 집계합니다.
+      const bullyFromRows = new Array(C).fill(0);
+      try{
+        for (const r of (payload.resultRows||[])){
+          const cls = parseInt(String(r["반"]||"").replace(/[^0-9]/g,""), 10);
+          if (!Number.isFinite(cls) || cls < 1 || cls > C) continue;
+          const v = safeString(r["학폭여부"] || r["학폭"] || r["학교폭력여부"] || r["학교폭력"]);
+          const flag = (ynTo01(v) || (v.toUpperCase()==="O")) ? 1 : 0;
+          bullyFromRows[cls-1] += flag;
+        }
+      }catch(_){/* noop */}
+
+      const bullyArr = (Array.isArray(bully) && bully.length===C) ? bully : bullyFromRows;
+
+      // DOM으로 렌더링(문자열 innerHTML에서 특정 값이 비는 현상 방지)
+      const wrap = document.createElement('div');
+      wrap.style.overflow = 'auto';
+      const table = document.createElement('table');
+      const thead = document.createElement('thead');
+      const trh = document.createElement('tr');
+      ["반","인원","남","여","특수","ADHD","다문화","학폭"].forEach(t=>{
+        const th = document.createElement('th');
+        th.textContent = t;
+        trh.appendChild(th);
+      });
+      thead.appendChild(trh);
+      table.appendChild(thead);
+
+      const tbody = document.createElement('tbody');
       for (let c=0;c<C;c++){
-        html += `<tr><td>${c+1}</td><td>${cnt[c]}</td><td>${male[c]}</td><td>${female[c]}</td><td>${spec[c]}</td><td>${adhd[c]}</td><td>${(multi?multi[c]:0)}</td><td>${(bully?bully[c]:0)}</td></tr>`;
+        const tr = document.createElement('tr');
+        const values = [
+          c+1,
+          cnt[c] ?? 0,
+          male[c] ?? 0,
+          female[c] ?? 0,
+          spec[c] ?? 0,
+          adhd[c] ?? 0,
+          (multi ? (multi[c] ?? 0) : 0),
+          (bullyArr ? (bullyArr[c] ?? 0) : 0)
+        ];
+        for (const v of values){
+          const td = document.createElement('td');
+          td.textContent = String(v ?? 0);
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
       }
-      html += "</tbody></table></div>";
-      classSummary.innerHTML = html;
+      table.appendChild(tbody);
+      wrap.appendChild(table);
+      classSummary.innerHTML = '';
+      classSummary.appendChild(wrap);
     }
 
     function buildViolationReport(){
