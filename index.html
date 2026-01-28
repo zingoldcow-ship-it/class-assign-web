@@ -178,10 +178,22 @@
     .introSection .panelTitle{margin:0 0 6px 0;font-size:14px}
     /* App how-to header (ivory card) */
     .howtoCard{background:rgba(255, 250, 240, 1);border-color:rgba(245,158,11,.25)}
-    /* Make the "앱 사용방법" title stand out without using blue */
-    .howtoCard .panelTitle{font-size:18px;font-weight:950;margin-bottom:10px;}
-    .howtoTitleWrap{display:inline-flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.72);border:1px solid rgba(15,23,42,.10);box-shadow:0 6px 16px rgba(0,0,0,.10);}
-    .howtoTitleWrap .t{font-size:18px;font-weight:950;letter-spacing:-0.2px;color:#7c2d12;}
+    /* Intro section title (no "card-in-card" for subtitles) */
+    .sectionTitle{
+      margin:0 0 10px 0;
+      font-size:18px;
+      font-weight:950;
+      letter-spacing:-0.2px;
+      color:#7c2d12;
+    }
+    /* Keep a card-in-card look ONLY for 안내 내용 */
+    .innerCard{
+      padding:10px 12px;
+      border-radius:12px;
+      background:rgba(255,255,255,.72);
+      border:1px solid rgba(15,23,42,.10);
+      box-shadow:0 6px 16px rgba(0,0,0,.10);
+    }
 
     /* Note box (high contrast on light UI) */
     .noteBox{padding:10px 12px;border-radius:12px;background:rgba(254,249,195,1);border:1px solid rgba(245,158,11,.45);color:#111827;}
@@ -249,7 +261,7 @@
   <div class="wrap">
     <div class="headerTop">
       <div>
-        <h1>📘 반배정 도우미</h1>
+        <h1>📘 반배정 도우미 웹앱</h1>
         <div class="row" style="margin-top:10px">
           <span class="pill ok">서버 전송 없음</span>
           <span class="pill" id="filePill">엑셀 미선택</span>
@@ -258,8 +270,16 @@
         </div>
       </div>
       <button type="button" class="homeBtn" id="homeBtn" title="홈(안내)으로">
-        <svg class="homeIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M4 10.5L12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+        <!-- colored home icon (to avoid the bland grayscale look) -->
+        <svg class="homeIcon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- roof -->
+          <path d="M3.5 10.6 12 4l8.5 6.6" fill="#60a5fa" stroke="#1e3a8a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- house body -->
+          <path d="M6 10.2V20c0 .55.45 1 1 1h10c.55 0 1-.45 1-1v-9.8" fill="#fbbf24" stroke="#92400e" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- door -->
+          <path d="M10 21v-6.2c0-.44.36-.8.8-.8h2.4c.44 0 .8.36.8.8V21" fill="#fff" stroke="#78350f" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- window -->
+          <path d="M7.8 13.3h3.1v3.1H7.8z" fill="#e0f2fe" stroke="#0c4a6e" stroke-width="1.1"/>
         </svg>
         홈
       </button>
@@ -275,9 +295,7 @@
   <section id="introView">
   <div class="card">
     <div class="introSection howtoCard">
-      <div class="howtoTitleWrap" aria-label="앱 사용방법">
-        <div class="t">앱 사용방법</div>
-      </div>
+      <div class="sectionTitle" aria-label="앱 사용방법">앱 사용방법</div>
       <ol class="guideList">
         <li>샘플 양식에 학생 정보를 입력</li>
         <li>실행 화면으로 이동</li>
@@ -295,12 +313,14 @@
     </div>
 
     <div class="introSection">
-      <div class="howtoTitleWrap" style="margin-bottom:10px"><div class="t">안내</div></div>
-      <div class="small">• 결과는 <b>“결과” 탭</b>에서 확인합니다.<br/>• 아이콘 안내: 🧩 특수 │ 🌏 다문화 │ 🧠 ADHD │ 🔗 분리요청 │ 🤝 배려요청</div>
+      <div class="sectionTitle" style="margin-bottom:10px">안내</div>
+      <div class="innerCard">
+        <div class="small">• 결과는 <b>“결과” 탭</b>에서 확인합니다.<br/>• 아이콘 안내: 🧩 특수 │ 🌏 다문화 │ 🧠 ADHD │ 🔗 분리요청 │ 🤝 배려요청</div>
+      </div>
     </div>
 
     <div class="introSection">
-      <div class="howtoTitleWrap" style="margin-bottom:10px"><div class="t">샘플 양식</div></div>
+      <div class="sectionTitle" style="margin-bottom:10px">샘플 양식</div>
       <div class="small">처음 사용하시면 위 양식을 내려받아 <b>열 이름/형식을 유지하며 작성해주세요.</b></div><div class="small" style="margin-top:6px;color:var(--subtle);">모든 칸을 다 채우지 않아도 됩니다. <b>입력 가능한 항목만</b> 작성해도 실행할 수 있어요.</div>
     </div>
 
@@ -452,7 +472,7 @@
       <section class="rightCol">
         <section class="card">
           <h2 class="panelTitle">📊 기본 통계</h2>
-          <div id="stats" class="small">엑셀을 선택하면 통계/미리보기가 표시됩니다.</div>
+          <div id="stats" class="small">엑셀을 업로드하면 통계/미리보기가 표시됩니다.</div>
         </section>
 
         <!-- 현재 설정 요약 (기본 통계 ↔ 미리보기 사이) -->
