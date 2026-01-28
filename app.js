@@ -366,14 +366,43 @@ console.log('class-assign webapp v3.4.2 loaded');
     return 0;
   }
   function splitCodes(x){
-    const s = safeString(x);
+    let s = safeString(x);
     if (!s) return [];
+
+    // "3반 12번", "3반12번", "3반 12" 같은 표기를 토큰 1개로 유지하기 위해
+    // 미리 "3-12" 형태로 정규화합니다.
+    // (공백 분리로 인해 '3반'/'12번'이 따로 떨어지는 문제 방지)
+    s = s
+      .replace(/(\d{1,2})\s*반\s*(\d{1,2})\s*번?/g, "$1-$2")
+      .replace(/(\d{1,2})반(\d{1,2})번?/g, "$1-$2")
+      .replace(/(\d{1,2})\s*반\s*(\d{1,2})/g, "$1-$2");
     // 흔한 '없음' 표기들은 코드로 취급하지 않습니다.
     const NO = new Set(["-","–","—","없음","없","x","X","0","N","n","미입력","무"]);
     return s
       .split(/[,\s;]+/)
       .map(t=>t.trim())
       .filter(t=>t && !NO.has(t));
+  }
+
+  // "3-12" / "3반12번" / "3반 12번" 등에서 반/출석번호를 추출
+  function parseClassSeatToken(token){
+    const t = safeString(token).trim();
+    if (!t) return null;
+
+    let m = t.match(/^(\d{1,2})\s*[-_–—]\s*(\d{1,2})$/);
+    if (m) return { cls: parseInt(m[1],10), seat: parseInt(m[2],10) };
+
+    m = t.match(/^(\d{1,2})\s*반\s*(\d{1,2})\s*번?$/);
+    if (m) return { cls: parseInt(m[1],10), seat: parseInt(m[2],10) };
+
+    m = t.match(/^(\d{1,2})반(\d{1,2})번?$/);
+    if (m) return { cls: parseInt(m[1],10), seat: parseInt(m[2],10) };
+
+    // "3반12" 같이 '번'이 없는 경우도 허용
+    m = t.match(/^(\d{1,2})\s*반\s*(\d{1,2})$/);
+    if (m) return { cls: parseInt(m[1],10), seat: parseInt(m[2],10) };
+
+    return null;
   }
 
   // ----- Setup preview table -----
@@ -441,6 +470,11 @@ console.log('class-assign webapp v3.4.2 loaded');
 
   function normalizeRow(r){
     const name = safeString(r["학생명"]||r["이름"]||r["성명"]);
+    // 동명이인/중복번호 케이스 대응용: 반/출석번호(선택 컬럼)
+    const clsRaw = safeString(r["반"]||r["기존 반"]||r["기존반"]||r["학급"]||r["반(기존)"]);
+    const seatRaw = safeString(r["출석번호"]||r["출석 번호"]||r["번호"]||r["출번"]||r["출석"]);
+    const classNo = parseInt((clsRaw||"").replace(/[^0-9]/g, ""), 10);
+    const seatNo = parseInt((seatRaw||"").replace(/[^0-9]/g, ""), 10);
     const gender = safeString(r["성별"]||r["남녀"]);
     const birth = safeString(r["생년월일"]||r["생년"]||r["생일"]||r["출생일"]);
     const acad = safeString(r["학업성취"]||r["학업성취(3단계)"]);
@@ -455,6 +489,8 @@ console.log('class-assign webapp v3.4.2 loaded');
         return {
       _raw: {...r},
       name, gender, birth,
+      classNo: Number.isFinite(classNo) ? classNo : null,
+      seatNo: Number.isFinite(seatNo) ? seatNo : null,
       acad, peer, parent,
       acadS: level3ToScore(acad),
       peerS: level3ToScore(peer),
@@ -486,6 +522,22 @@ console.log('class-assign webapp v3.4.2 loaded');
     // 예: 배려요청학생에 '학생026'을 넣으면, 해당 학생과 같은 반이 되도록(가능하면) 처리
     const nameToIdx = new Map();
     rows.forEach((r, i)=>{ if (r?.name) nameToIdx.set(String(r.name).trim(), i); });
+
+    // 반+출석번호(예: "3-12", "3반 12번") -> 학생 인덱스
+    // 같은 키가 2명 이상이면(데이터 오류) 모호성으로 보고 1:1 매칭에서는 제외합니다.
+    const classSeatToIdx = new Map();
+    const classSeatDup = new Set();
+    rows.forEach((r, i)=>{
+      const cls = r?.classNo;
+      const seat = r?.seatNo;
+      if (!Number.isFinite(cls) || !Number.isFinite(seat)) return;
+      const key = `${cls}-${seat}`;
+      if (classSeatToIdx.has(key)){
+        classSeatDup.add(key);
+      } else {
+        classSeatToIdx.set(key, i);
+      }
+    });
     rows.forEach((r, idx)=>{
       for (const c of r.sepCodes){
         if (!sep.has(c)) sep.set(c, []);
@@ -498,6 +550,19 @@ console.log('class-assign webapp v3.4.2 loaded');
 
       // 1:1 요청(상대 학생명을 직접 적은 경우)도 그룹으로 추가
       for (const c of r.sepCodes){
+        // (B) 반+출석번호로 상대 지정: "3-12", "3반 12번" 등 (한쪽만 적어도 매칭)
+        const cs = parseClassSeatToken(c);
+        if (cs){
+          const keyCS = String(cs.cls) + "-" + String(cs.seat);
+          const jCS = (classSeatDup.has(keyCS)) ? undefined : classSeatToIdx.get(keyCS);
+          if (jCS !== undefined && jCS !== idx){
+            const a = Math.min(idx, jCS), b = Math.max(idx, jCS);
+            const key = "@sep_pair:" + a + "-" + b;
+            if (!sep.has(key)) sep.set(key, []);
+            sep.get(key).push(a, b);
+            continue; // 동일 셀에 이름도 같이 적힌 경우 중복 페어 생성 방지
+          }
+        }
         const j = nameToIdx.get(String(c).trim());
         if (j !== undefined && j !== idx){
           const a = Math.min(idx, j), b = Math.max(idx, j);
@@ -507,6 +572,19 @@ console.log('class-assign webapp v3.4.2 loaded');
         }
       }
       for (const c of r.careCodes){
+        // (B) 반+출석번호로 상대 지정: "3-12", "3반 12번" 등 (한쪽만 적어도 매칭)
+        const cs = parseClassSeatToken(c);
+        if (cs){
+          const keyCS = String(cs.cls) + "-" + String(cs.seat);
+          const jCS = (classSeatDup.has(keyCS)) ? undefined : classSeatToIdx.get(keyCS);
+          if (jCS !== undefined && jCS !== idx){
+            const a = Math.min(idx, jCS), b = Math.max(idx, jCS);
+            const key = "@care_pair:" + a + "-" + b;
+            if (!care.has(key)) care.set(key, []);
+            care.get(key).push(a, b);
+            continue; // 동일 셀에 이름도 같이 적힌 경우 중복 페어 생성 방지
+          }
+        }
         const j = nameToIdx.get(String(c).trim());
         if (j !== undefined && j !== idx){
           const a = Math.min(idx, j), b = Math.max(idx, j);
