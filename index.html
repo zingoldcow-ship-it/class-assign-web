@@ -245,6 +245,11 @@
     #resultTab .small{line-height:1.55}
     .unsatTitle{font-weight:900; font-size:14px;}
 
+
+    /* Header app title emphasis + helper icon */
+    #headerApp h1{font-size:22px; letter-spacing:-0.2px;}
+    .titleRow{display:flex; align-items:center; gap:10px;}
+    .helperIcon{width:28px; height:28px; flex:0 0 auto;}
     /* Smaller buttons inside 3-level summary area */
     #levelTabs .tabBtn{padding:8px 10px; font-size:13px;}
 </style>
@@ -263,7 +268,25 @@
   <div class="wrap">
     <div class="headerTop">
       <div>
-        <h1>📘 반배정 도우미 웹앱</h1>
+        <div class="titleRow">
+          <h1>📘 반배정 도우미 웹앱</h1>
+          <svg class="helperIcon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <!-- head -->
+            <circle cx="32" cy="28" r="14" fill="#fde68a" stroke="#92400e" stroke-width="2"/>
+            <!-- headset band -->
+            <path d="M18 28c0-8 6-14 14-14s14 6 14 14" fill="none" stroke="#1e3a8a" stroke-width="3" stroke-linecap="round"/>
+            <!-- ear pads -->
+            <rect x="14" y="28" width="8" height="14" rx="4" fill="#60a5fa" stroke="#1e3a8a" stroke-width="2"/>
+            <rect x="42" y="28" width="8" height="14" rx="4" fill="#60a5fa" stroke="#1e3a8a" stroke-width="2"/>
+            <!-- mic -->
+            <path d="M46 42c-3 4-7 6-12 6" fill="none" stroke="#1e3a8a" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="33" cy="49" r="2.2" fill="#1e3a8a"/>
+            <!-- smile -->
+            <path d="M26 30c2 3 10 3 12 0" fill="none" stroke="#78350f" stroke-width="2.5" stroke-linecap="round"/>
+            <!-- sparkle -->
+            <path d="M52 14l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#f472b6" opacity="0.95"/>
+          </svg>
+        </div>
         <div class="row" style="margin-top:10px">
           <span class="pill ok">서버 전송 없음</span>
           <span class="pill" id="filePill">엑셀 미선택</span>
@@ -480,21 +503,23 @@
       <section class="rightCol">
         <section class="card">
           <h2 class="panelTitle">📊 기본 통계</h2>
-          <div id="stats" class="small">엑셀을 업로드하면 통계/미리보기가 표시됩니다.</div>
+          <div class="innerCard"><div id="stats" class="small">엑셀을 업로드하면 통계/미리보기가 표시됩니다.</div></div>
         </section>
 
         <!-- 현재 설정 요약 (기본 통계 ↔ 미리보기 사이) -->
         <section class="card" id="settingsSummary" style="display:none;">
           <h2 class="panelTitle">🧾 현재 설정 요약</h2>
-          <div class="small" id="settingsSummaryLines">-</div>
+          <div class="innerCard"><div class="small" id="settingsSummaryLines">-</div></div>
         </section>
 
         <section class="card">
           <h2 class="panelTitle">🔎 미리보기(상위 20명)</h2>
-          <div id="legendPreview" class="small" style="opacity:0.9; margin-top:-4px; margin-bottom:6px;">아이콘 안내: 🧩 특수 │ 🌏 다문화 │ 🧠 ADHD │ 🔗 분리요청 │ 🤝 배려요청</div>
-          <div id="errors" class="small danger"></div>
-          <div style="overflow:auto; max-height: 420px;">
-            <table id="previewTable"></table>
+          <div class="innerCard">
+            <div id="legendPreview" class="small" style="opacity:0.9; margin-top:-4px; margin-bottom:6px;">아이콘 안내: 🧩 특수 │ 🌏 다문화 │ 🧠 ADHD │ 🔗 분리요청 │ 🤝 배려요청</div>
+            <div id="errors" class="small danger"></div>
+            <div style="overflow:auto; max-height: 420px;">
+              <table id="previewTable"></table>
+            </div>
           </div>
         </section>
 
