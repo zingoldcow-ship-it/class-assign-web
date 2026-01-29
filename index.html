@@ -620,6 +620,12 @@
 
       <section class="card">
         <h2 class="panelTitle">📋 배정표</h2>
+        <div id="legendResult" class="small" style="opacity:0.9; margin-top:-4px; margin-bottom:6px;">아이콘 안내: 🧩 특수 │ 🌏 다문화 │ 🧠 ADHD │ 🔗 분리요청 │ 🤝 배려요청</div>
+        <div class="row" style="margin-bottom:10px;">
+          <label class="small">반 필터</label>
+          <select id="classFilter"></select>
+          <span class="small" id="tableMeta"></span>
+        </div>
         <div style="overflow:auto; max-height: 560px;">
           <table id="resultTable"></table>
         </div>
