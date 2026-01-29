@@ -68,7 +68,7 @@
     .kv{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted);margin-top:6px}
     button{background:var(--accent);border:none;color:#0b1220;padding:11px 12px;border-radius:12px;font-weight:900;cursor:pointer;width:auto}
     /* Lighter blue for result download */
-    .downloadBtn{display:inline-flex;align-items:center;gap:10px;padding:14px 18px;border-radius:16px;font-size:15px;font-weight:950;min-width:220px;background:rgba(96,165,250,.35);border:1px solid rgba(37,99,235,.22);}
+    .downloadBtn{display:inline-flex;align-items:center;gap:10px;padding:14px 18px;border-radius:16px;font-size:15px;font-weight:950;min-width:220px;background:rgba(196,181,253,.35);border:1px solid rgba(139,92,246,.25);}
     .downloadBtn:hover{background:rgba(96,165,250,.42)}
     .downloadBtn .btnIcon{font-size:18px;line-height:1;}
 
@@ -562,7 +562,7 @@
             <span class="pill warn" id="sepPill">분리 미충족: -</span>
             <span class="pill care" id="carePill">배려 미충족: -</span>
           </div>
-          <button id="downloadBtn" class="downloadBtn" style="width:auto;"><span class="btnIcon">⬇️</span><span>결과 엑셀 다운로드</span></button>
+          <button id="downloadBtn" class="downloadBtn" style="width:auto;"><span class="btnIcon">⬇️</span><span>결과 엑셀(.xlsx) 다운로드</span></button>
         </div>
       </section>
 
@@ -620,13 +620,6 @@
 
       <section class="card">
         <h2 class="panelTitle">📋 배정표</h2>
-        <div id="legendResult" class="small" style="opacity:0.9; margin-top:-4px; margin-bottom:6px;">아이콘 안내: 🧩 특수 │ 🌏 다문화 │ 🧠 ADHD │ 🔗 분리요청 │ 🤝 배려요청</div>
-        <div class="row" style="margin-bottom:10px;">
-          <label class="small">반 필터</label>
-          <select id="classFilter"></select>
-          <span class="small" id="tableMeta"></span>
-        </div>
-        <div id="legendResult" class="small" style="opacity:0.9; margin-top:-6px; margin-bottom:10px;">아이콘 안내: 🧩 특수 │ 🌏 다문화 │ 🧠 ADHD │ 🔗 분리요청 │ 🤝 배려요청</div>
         <div style="overflow:auto; max-height: 560px;">
           <table id="resultTable"></table>
         </div>
