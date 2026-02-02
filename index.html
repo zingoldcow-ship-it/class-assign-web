@@ -401,10 +401,12 @@
             <input id="classCount" type="number" min="2" max="30" value="10" />
             <div class="divider"></div>
 
-            <label>2. <strong style='font-size:1.05em'>남/여 성비 균형</strong></label>
-            <div class="small" style="margin-top:6px; padding:10px 12px; border:1px solid rgba(15,23,42,.10); border-radius:12px; background:rgba(96,165,250,.12);">
-              ✅ <b>항상 자동 적용(최우선)</b>: 반끼리 남학생 수 편차가 최소가 되도록 먼저 고정한 뒤, 다른 조건을 조정합니다.
-            </div>
+            <label>2. <strong style='font-size:1.05em'>남/여 성비 균형(3단계)</strong></label>
+            <select id="genderBalance">
+              <option value="off">미적용</option>
+              <option value="medium">보통 (반마다 남녀 차이 ±2 정도로 유지)</option>
+              <option value="strong" selected>강 (반마다 남녀 차이 ±1 정도로 유지)</option>
+            </select>
             <div class="divider"></div>
 
             <label>3. <strong style='font-size:1.05em'>시뮬레이션 정밀도(3단계)</strong><br><span class='subNote'>(높을수록 더 균형 / 느려질 수 있음)</span></label>
@@ -423,36 +425,18 @@
             <div class="small" style="margin-top:2px; opacity:.95;">* 가중치는 “반배정 점수” 계산에 사용됩니다. <b>값이 높을수록</b> 해당 항목이 반배정에 <b>더 강하게</b> 반영됩니다.</div>
             <div style="margin-top:10px">
               <label>1. 학업성취 가중치</label>
-              <select id="wAcad">
-                <option value="0">미반영</option>
-                <option value="150">약하게 반영</option>
-                <option value="300" selected>보통</option>
-                <option value="450">강하게 반영</option>
-                <option value="600">매우 강하게 반영</option>
-              </select>
-              <div class="small" style="margin-top:6px; color:var(--muted);">선택한 단계에 따라 반배정 점수에서 해당 항목의 영향력이 달라집니다.</div>
+              <input id="wAcad" type="range" min="0" max="600" value="160" step="10" />
+              <div class="kv"><span>0</span><span id="wAcadV">160</span><span>600</span></div>
             </div>
             <div style="margin-top:10px">
               <label>2. 교우관계 가중치</label>
-              <select id="wPeer">
-                <option value="0">미반영</option>
-                <option value="150">약하게 반영</option>
-                <option value="300" selected>보통</option>
-                <option value="450">강하게 반영</option>
-                <option value="600">매우 강하게 반영</option>
-              </select>
-              <div class="small" style="margin-top:6px; color:var(--muted);">선택한 단계에 따라 반배정 점수에서 해당 항목의 영향력이 달라집니다.</div>
+              <input id="wPeer" type="range" min="0" max="600" value="160" step="10" />
+              <div class="kv"><span>0</span><span id="wPeerV">160</span><span>600</span></div>
             </div>
             <div style="margin-top:10px">
               <label>3. 학부모민원 가중치</label>
-              <select id="wParent">
-                <option value="0">미반영</option>
-                <option value="150">약하게 반영</option>
-                <option value="300" selected>보통</option>
-                <option value="450">강하게 반영</option>
-                <option value="600">매우 강하게 반영</option>
-              </select>
-              <div class="small" style="margin-top:6px; color:var(--muted);">선택한 단계에 따라 반배정 점수에서 해당 항목의 영향력이 달라집니다.</div>
+              <input id="wParent" type="range" min="0" max="600" value="260" step="10" />
+              <div class="kv"><span>0</span><span id="wParentV">260</span><span>600</span></div>
             </div>
 	          </div>
         </details>
@@ -464,32 +448,41 @@
               ③ 요청·제약 설정</span>
           </summary>
           <div class="accInner">
-            <label>1. <strong style='font-size:1.05em'>ADHD 학생 배정</strong></label>
+            <label>1. <strong style='font-size:1.05em'>ADHD 학생 배정(3단계)</strong></label>
             <select id="adhdCap">
-              <option value="none">해당학생 없음</option>
-              <option value="spread" selected>균등분산</option>
-            ="button" class="helpBtn" data-help="help-adhd">
+              <option value="off" selected>미적용</option>
+              <option value="normal">보통 (가급적 반별 균등 분산)</option>
+              <option value="strong">강 (가능한 한 균등 분산)</option>
+            </select>
+            <div class="helpRow">
+              <button type="button" class="helpBtn" data-help="help-adhd">
                 <span class="helpIcon" aria-hidden="true"></span><span>자세히</span>
               </button>
             </div>
             <div id="help-adhd" class="helpText small" hidden>• 엑셀에 <b>ADHD여부</b> 열이 있으면 Y/N로 인식합니다.<br/>• <b>보통</b>: 가능한 한 반별로 고르게 분산되도록 우선합니다.<br/>• <b>강</b>: 분산을 더 강하게 반영합니다.</div>
 
-            <label>2. <strong style='font-size:1.05em'>특수학생 배정</strong></label>
+            <label>2. <strong style='font-size:1.05em'>특수학생 배정(3단계)</strong></label>
             <select id="specialMode">
-              <option value="none">해당학생 없음</option>
-              <option value="spread" selected>균등분산</option>
-            ="button" class="helpBtn" data-help="help-special">
+              <option value="off" selected>미적용</option>
+              <option value="medium">보통 (가급적 반별 균등 분산)</option>
+              <option value="strong">강 (가능한 한 균등 분산)</option>
+            </select>
+            <div class="helpRow">
+              <button type="button" class="helpBtn" data-help="help-special">
                 <span class="helpIcon" aria-hidden="true"></span><span>자세히</span>
               </button>
             </div>
             <div id="help-special" class="helpText small" hidden>엑셀에 <b>특수여부</b> 열이 있으면 Y/N로 인식합니다.<br/>열이 없으면 모두 N으로 처리합니다.</div>
             <div class="divider"></div>
 
-            <label>3. <strong style='font-size:1.05em'>다문화학생 배정</strong></label>
+            <label>3. <strong style='font-size:1.05em'>다문화학생 배정(3단계)</strong></label>
             <select id="multiMode">
-              <option value="none">해당학생 없음</option>
-              <option value="spread" selected>균등분산</option>
-            ="button" class="helpBtn" data-help="help-multi">
+              <option value="off" selected>미적용</option>
+              <option value="medium">보통 (가급적 반별 균등 분산)</option>
+              <option value="strong">강 (가능한 한 균등 분산)</option>
+            </select>
+            <div class="helpRow">
+              <button type="button" class="helpBtn" data-help="help-multi">
                 <span class="helpIcon" aria-hidden="true"></span><span>자세히</span>
               </button>
             </div>
@@ -499,9 +492,12 @@
 
             <label>4. <strong style='font-size:1.05em'>학폭(가해) 학생 배정(3단계)</strong></label>
             <select id="bullyMode">
-              <option value="none">해당학생 없음</option>
-              <option value="spread" selected>균등분산</option>
-            lpBtn" data-help="help-bully">
+              <option value="off" selected>미적용</option>
+              <option value="medium">보통 (가급적 반별 분산 · 1반 1명 권장)</option>
+              <option value="strong">강 (가능한 한 반별 분산 · 1반 1명 우선)</option>
+            </select>
+            <div class="helpRow">
+              <button type="button" class="helpBtn" data-help="help-bully">
                 <span class="helpIcon" aria-hidden="true"></span><span>자세히</span>
               </button>
             </div>
@@ -509,17 +505,28 @@
             <div class="divider"></div>
 
 
-            <label>5. <strong style='font-size:1.05em'>분리요청 반영 강도</strong></label>
+            <label>5. <strong style='font-size:1.05em'>분리요청 강도</strong><br><span class='subNote'>(같은 반이 되면 안 됨)</span></label>
             <select id="sepStrength">
-              <option value="weak">약 (50%반영)</option>
-              <option value="medium">보통 (75%반영)</option>
-              <option value="strong" selected>강 (100%반영)</option>
-            size:1.05em'>배려요청 강도</strong><br><span class='subNote'>(같은 반이 되면 좋음)</span></label>
+              <option value="strict">엄격 (원칙적으로 같은 반 배정 금지)</option>
+              <option value="strong" selected>강 (최대한 다른 반으로 분산)</option>
+              <option value="medium">보통 (가급적 다른 반으로 분산)</option>
+              <option value="weak">약함 (가능하면 분산, 여건에 따라 허용)</option>
+            </select>
+
+            <div style="margin-top:10px">
+              <label>6. <strong style='font-size:1.05em'>배려요청 강도</strong><br><span class='subNote'>(같은 반이 되면 좋음)</span></label>
               <select id="careStrength">
-                <option value="weak">약 (50%반영)</option>
-                <option value="medium">보통 (75%반영)</option>
-                <option value="strong" selected>강 (100%반영)</option>
-            tickyRun">
+                <option value="strict">엄격 (가능한 한 같은 반으로 배정)</option>
+                <option value="strong" selected>강 (최대한 같은 반으로 배정)</option>
+                <option value="medium">보통 (가급적 같은 반으로 배정)</option>
+                <option value="weak">약함 (가능하면 같은 반, 여건에 따라 허용)</option>
+              </select>
+            </div>
+          </div>
+        </details>
+
+        </div>
+        <div class="stickyRun">
           <button id="runBtn" type="button" disabled>반배정 실행 → 결과 탭 보기</button>
           <div class="tip">결과가 마음에 안 들면 설정을 조금 조정하거나 다시 실행해 보세요 😊</div>
         </div>
