@@ -479,7 +479,7 @@
             <div id="help-special" class="helpText small" hidden>엑셀에 <b>특수여부</b> 열이 있으면 Y/N로 인식합니다.<br/>• <b>균등분산</b>: 특수학생이 있으면 반별로 가능한 한 고르게 배치합니다.</div>
             <div class="divider"></div>
 
-            <label>2. <strong style='font-size:1.05em'>다문화학생 배정(3단계)</strong></label>
+            <label>3. <strong style='font-size:1.05em'>다문화학생 배정(3단계)</strong></label>
             <select id="multiMode">
               <option value="off" selected>해당학생 없음</option>
               <option value="strong">균등분산</option>
@@ -507,7 +507,16 @@
             <div class="divider"></div>
 
 
-            <label>5. <strong style='font-size:1.05em'>분리요청 강도</strong><br><span class='subNote'>(같은 반이 되면 안 됨)</span></label>
+            
+          </div>
+        </details>
+
+
+        <!-- ④ 분리·배려 요청 설정 (기본 접힘) -->
+        <details class="acc" id="accSepCare">
+          <summary><span>④ 분리·배려 요청 설정</span></summary>
+          <div class="accInner">
+<label>1. <strong style='font-size:1.05em'>분리요청 강도</strong><br><span class='subNote'>(같은 반이 되면 안 됨)</span></label>
             <select id="sepStrength">
               <option value="weak">약함 (약 30% 반영)</option>
               <option value="medium">보통 (약 60% 반영)</option>
@@ -516,7 +525,7 @@
 </select>
 
             <div style="margin-top:10px">
-              <label>6. <strong style='font-size:1.05em'>배려요청 강도</strong><br><span class='subNote'>(같은 반이 되면 좋음)</span></label>
+              <label>2. <strong style='font-size:1.05em'>배려요청 강도</strong><br><span class='subNote'>(같은 반이 되면 좋음)</span></label>
               <select id="careStrength">
                 <option value="weak">약함 (약 30% 반영)</option>
                 <option value="medium">보통 (약 60% 반영)</option>
@@ -526,7 +535,6 @@
             </div>
           </div>
         </details>
-
         </div>
         <div class="stickyRun">
           <button id="runBtn" type="button" disabled>반배정 실행 → 결과 탭 보기</button>
