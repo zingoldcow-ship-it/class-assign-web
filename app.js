@@ -169,17 +169,12 @@ console.log('class-assign webapp v3.4.2 loaded');
   const settingsSummaryLines = document.getElementById("settingsSummaryLines");
 
   const classCountEl = document.getElementById("classCount");
-  const genderBalanceEl = document.getElementById("genderBalance");
-  const iterModeEl = document.getElementById("iterMode");
+const iterModeEl = document.getElementById("iterMode");
   const wAcad = document.getElementById("wAcad");
   const wPeer = document.getElementById("wPeer");
   const wParent = document.getElementById("wParent");
   const wMulti = document.getElementById("wMulti");
-  const wAcadV = document.getElementById("wAcadV");
-  const wPeerV = document.getElementById("wPeerV");
-  const wParentV = document.getElementById("wParentV");
-  const wMultiV = document.getElementById("wMultiV");
-  const sepStrengthEl = document.getElementById("sepStrength");
+const sepStrengthEl = document.getElementById("sepStrength");
   const careStrengthEl = document.getElementById("careStrength");
   const adhdCapEl = document.getElementById("adhdCap");
   const specialModeEl = document.getElementById("specialMode");
@@ -240,15 +235,6 @@ console.log('class-assign webapp v3.4.2 loaded');
   let studentRows = null;
   let lastHeaders = null; // 업로드 엑셀의 열 순서 기억(결과 다운로드에 반영)
 
-  function syncWeights(){
-    wAcadV.textContent = wAcad.value;
-    wPeerV.textContent = wPeer.value;
-    wParentV.textContent = wParent.value;
-    if (wMultiV && wMulti) wMultiV.textContent = wMulti.value;
-  }
-  [wAcad,wPeer,wParent,wMulti].filter(Boolean).forEach(el=>el.addEventListener("input", syncWeights));
-  syncWeights();
-
   function labelOfSelect(el){
     try{
       if (!el) return "-";
@@ -268,7 +254,6 @@ console.log('class-assign webapp v3.4.2 loaded');
     if (!settingsSummaryBox || !settingsSummaryLines) return;
     const cc = classCountEl ? String(classCountEl.value||"") : "-";
     const itLabel = labelOfSelect(iterModeEl);
-    const gb = labelOfSelect(genderBalanceEl);
     const sm = labelOfSelect(specialModeEl);
     const mm = labelOfSelect(multiModeEl);
     const bm = labelOfSelect(bullyModeEl);
@@ -278,7 +263,7 @@ console.log('class-assign webapp v3.4.2 loaded');
 
     const lines = [
       `• 반 ${cc}개 · 시뮬레이션 ${itLabel}`,
-      `• 성비 ${gb} · 특수 ${sm} · 다문화 ${mm} · 학폭 ${bm} · ADHD ${ad}`,
+      `• 성비 자동균형(항상 적용) · 특수 ${sm} · 다문화 ${mm} · 학폭 ${bm} · ADHD ${ad}`,
       `• 분리 ${sep} · 배려 ${care}`,
     ];
 
@@ -287,7 +272,7 @@ console.log('class-assign webapp v3.4.2 loaded');
   }
 
   // 설정 변화 시 요약 갱신
-  [classCountEl, genderBalanceEl, iterModeEl, specialModeEl, multiModeEl, bullyModeEl, adhdCapEl, sepStrengthEl, careStrengthEl, wAcad, wPeer, wParent, wMulti]
+  [classCountEl, iterModeEl, specialModeEl, multiModeEl, bullyModeEl, adhdCapEl, sepStrengthEl, careStrengthEl, wAcad, wPeer, wParent, wMulti]
     .filter(Boolean)
     .forEach(el=>{
       el.addEventListener("change", renderSettingsSummary);
@@ -935,6 +920,10 @@ console.log('class-assign webapp v3.4.2 loaded');
       const ci = assign[i], cj = assign[j];
       if (ci === cj) continue;
 
+      // 성비 균형은 항상 자동 적용: 성별이 다른 학생끼리의 swap은 허용하지 않습니다.
+      const gi = rows[i].gender, gj = rows[j].gender;
+      if ((gi==="남"||gi==="여") && (gj==="남"||gj==="여") && gi!==gj) continue;
+
       assign[i] = cj; assign[j] = ci;
       const s = scoreAssignment(rows, assign, classCount, weights, groups);
 
@@ -1089,8 +1078,7 @@ console.log('class-assign webapp v3.4.2 loaded');
       specialMode: (specialModeEl ? String(specialModeEl.value||"medium") : "medium"),
       multiMode: (multiModeEl ? String(multiModeEl.value||"off") : "off"),
       bullyMode: (bullyModeEl ? String(bullyModeEl.value||"off") : "off"),
-      genderMode: (genderBalanceEl ? String(genderBalanceEl.value||"strong") : "strong")
-    };
+      genderMode: "strong"};
 
     let payload = null;
     try{
@@ -1132,7 +1120,7 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
     });
 
     const payload = {
-      meta: { total: studentRows.length, classCount, iterations, seed, elapsedMs, weights, sepStrength: sepStrengthEl.value, careStrength: careStrengthEl.value, genderMode: (genderBalanceEl?genderBalanceEl.value:"strong") },
+      meta: { total: studentRows.length, classCount, iterations, seed, elapsedMs, weights, sepStrength: sepStrengthEl.value, careStrength: careStrengthEl.value, genderMode: "strong" },
       best: { score: best.score, sepPairs: best.sepViol, carePairs: best.careMiss, sepStudents: unsat.sepStudents, careStudents: unsat.careStudents },
       arrays: { cnt: best.cnt, male: best.male, female: best.female, spec: best.spec, adhd: best.adhd, multi: best.multi, bully: best.bully },
       resultRows,
