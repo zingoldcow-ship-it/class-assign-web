@@ -169,17 +169,12 @@ console.log('class-assign webapp v3.4.2 loaded');
   const settingsSummaryLines = document.getElementById("settingsSummaryLines");
 
   const classCountEl = document.getElementById("classCount");
-  const genderBalanceEl = document.getElementById("genderBalance");
-  const iterModeEl = document.getElementById("iterMode");
+const iterModeEl = document.getElementById("iterMode");
   const wAcad = document.getElementById("wAcad");
   const wPeer = document.getElementById("wPeer");
   const wParent = document.getElementById("wParent");
   const wMulti = document.getElementById("wMulti");
-  const wAcadV = document.getElementById("wAcadV");
-  const wPeerV = document.getElementById("wPeerV");
-  const wParentV = document.getElementById("wParentV");
-  const wMultiV = document.getElementById("wMultiV");
-  const sepStrengthEl = document.getElementById("sepStrength");
+const sepStrengthEl = document.getElementById("sepStrength");
   const careStrengthEl = document.getElementById("careStrength");
   const adhdCapEl = document.getElementById("adhdCap");
   const specialModeEl = document.getElementById("specialMode");
@@ -239,17 +234,7 @@ console.log('class-assign webapp v3.4.2 loaded');
   let rawRows = null;
   let studentRows = null;
   let lastHeaders = null; // 업로드 엑셀의 열 순서 기억(결과 다운로드에 반영)
-
-  function syncWeights(){
-    wAcadV.textContent = wAcad.value;
-    wPeerV.textContent = wPeer.value;
-    wParentV.textContent = wParent.value;
-    if (wMultiV && wMulti) wMultiV.textContent = wMulti.value;
-  }
-  [wAcad,wPeer,wParent,wMulti].filter(Boolean).forEach(el=>el.addEventListener("input", syncWeights));
-  syncWeights();
-
-  function labelOfSelect(el){
+function labelOfSelect(el){
     try{
       if (!el) return "-";
       const opt = el.options && el.selectedIndex >= 0 ? el.options[el.selectedIndex] : null;
@@ -268,8 +253,7 @@ console.log('class-assign webapp v3.4.2 loaded');
     if (!settingsSummaryBox || !settingsSummaryLines) return;
     const cc = classCountEl ? String(classCountEl.value||"") : "-";
     const itLabel = labelOfSelect(iterModeEl);
-    const gb = labelOfSelect(genderBalanceEl);
-    const sm = labelOfSelect(specialModeEl);
+const sm = labelOfSelect(specialModeEl);
     const mm = labelOfSelect(multiModeEl);
     const bm = labelOfSelect(bullyModeEl);
     const ad = labelOfSelect(adhdCapEl);
@@ -278,7 +262,7 @@ console.log('class-assign webapp v3.4.2 loaded');
 
     const lines = [
       `• 반 ${cc}개 · 시뮬레이션 ${itLabel}`,
-      `• 성비 ${gb} · 특수 ${sm} · 다문화 ${mm} · 학폭 ${bm} · ADHD ${ad}`,
+      `• 성비 자동(최우선) · 특수 ${sm} · 다문화 ${mm} · 학폭 ${bm} · ADHD ${ad}`,
       `• 분리 ${sep} · 배려 ${care}`,
     ];
 
@@ -287,7 +271,7 @@ console.log('class-assign webapp v3.4.2 loaded');
   }
 
   // 설정 변화 시 요약 갱신
-  [classCountEl, genderBalanceEl, iterModeEl, specialModeEl, multiModeEl, bullyModeEl, adhdCapEl, sepStrengthEl, careStrengthEl, wAcad, wPeer, wParent, wMulti]
+  [classCountEl, iterModeEl, specialModeEl, multiModeEl, bullyModeEl, adhdCapEl, sepStrengthEl, careStrengthEl, wAcad, wPeer, wParent, wMulti]
     .filter(Boolean)
     .forEach(el=>{
       el.addEventListener("change", renderSettingsSummary);
@@ -933,6 +917,10 @@ console.log('class-assign webapp v3.4.2 loaded');
       if (j === i) j = (j+1) % n;
 
       const ci = assign[i], cj = assign[j];
+
+      const gi = rows[i].gender;
+      const gj = rows[j].gender;
+      if (gi !== gj) continue; // 성비 고정: 같은 성별끼리만 swap
       if (ci === cj) continue;
 
       assign[i] = cj; assign[j] = ci;
@@ -966,18 +954,14 @@ console.log('class-assign webapp v3.4.2 loaded');
   }
 
   function strengthToPenalty(strength, kind){
+    const ratio = (strength === 'strong') ? 1.0 : (strength === 'medium') ? 0.75 : 0.5;
     if (kind === 'sep'){
-      if (strength === 'strict') return 500000;
-      if (strength === 'strong') return 120000;
-      if (strength === 'medium') return 50000;
-      return 15000;
+      const base = 120000; // 100% 기준
+      return base * ratio;
     }
-    // care (같은 반 선호): 반 구성에서는 '후순위'인 경우가 많아 가중치를 낮게 둡니다.
-    // (성비/인원균등/특수/ADHD/학업/교우/민원 + 분리요청을 우선 반영)
-    if (strength === 'strict') return 20000;   // 가능한 한 같은 반
-    if (strength === 'strong') return 8000;
-    if (strength === 'medium') return 3000;
-    return 1000;
+    // care
+    const base = 8000; // 100% 기준
+    return base * ratio;
   }
 
   function validateRows(rows){
@@ -1076,6 +1060,11 @@ console.log('class-assign webapp v3.4.2 loaded');
       }
     })();
 
+    const adhdSel = adhdCapEl ? String(adhdCapEl.value||"none") : "none";
+    const specialSel = specialModeEl ? String(specialModeEl.value||"none") : "none";
+    const multiSel = multiModeEl ? String(multiModeEl.value||"none") : "none";
+    const bullySel = bullyModeEl ? String(bullyModeEl.value||"none") : "none";
+
     const weights = {
       wAcad: parseInt(wAcad.value,10),
       wPeer: parseInt(wPeer.value,10),
@@ -1083,13 +1072,13 @@ console.log('class-assign webapp v3.4.2 loaded');
       wMulti: 0,
       sepPenalty: strengthToPenalty(sepStrengthEl.value, 'sep'),
       carePenalty: strengthToPenalty(careStrengthEl.value, 'care'),
-      // ADHD 학생 배정(3단계): 미적용/보통/강
-      adhdMode: (adhdCapEl ? String(adhdCapEl.value||"off") : "off"),
-      // 특수학생 배정(3단계): 미적용/보통/강
-      specialMode: (specialModeEl ? String(specialModeEl.value||"medium") : "medium"),
-      multiMode: (multiModeEl ? String(multiModeEl.value||"off") : "off"),
-      bullyMode: (bullyModeEl ? String(bullyModeEl.value||"off") : "off"),
-      genderMode: (genderBalanceEl ? String(genderBalanceEl.value||"strong") : "strong")
+      // 2단계: 해당학생 없음/균등분산 -> 내부 모드로 변환
+      adhdMode: (adhdSel === "spread") ? "strong" : "off",
+      specialMode: (specialSel === "spread") ? "strong" : "off",
+      multiMode: (multiSel === "spread") ? "strong" : "off",
+      bullyMode: (bullySel === "spread") ? "strong" : "off",
+      // 성비는 초기 배치에서 고정 + swap 제약으로 유지하므로 점수항은 끔
+      genderMode: "off"
     };
 
     let payload = null;
@@ -1132,7 +1121,7 @@ showOverlay(true, "코드 그룹(분리/배려)을 구성하는 중…");
     });
 
     const payload = {
-      meta: { total: studentRows.length, classCount, iterations, seed, elapsedMs, weights, sepStrength: sepStrengthEl.value, careStrength: careStrengthEl.value, genderMode: (genderBalanceEl?genderBalanceEl.value:"strong") },
+      meta: { total: studentRows.length, classCount, iterations, seed, elapsedMs, weights, sepStrength: sepStrengthEl.value, careStrength: careStrengthEl.value, genderMode: "auto_fixed" },
       best: { score: best.score, sepPairs: best.sepViol, carePairs: best.careMiss, sepStudents: unsat.sepStudents, careStudents: unsat.careStudents },
       arrays: { cnt: best.cnt, male: best.male, female: best.female, spec: best.spec, adhd: best.adhd, multi: best.multi, bully: best.bully },
       resultRows,
